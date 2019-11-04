@@ -1,0 +1,221 @@
+{% extends 'analysis/base.html' %}
+
+{% block title %}
+投稿管理
+{% endblock %}
+
+{% block content %}
+<div class="upload_wrapper">
+    <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#uploadModal">
+        <i class="fas fa-plus"></i>新規投稿
+    </button>
+    <button type="button" class="btn btn-info">
+        <i class="fas fa-edit"></i>編集
+    </button>
+    <button type="button" class="btn btn-danger">
+            <i class="fas fa-trash-alt"></i>削除
+    </button>
+
+    <!-- Show a Modal to UPLOAD -->
+    <div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title" id="uploadModalLabel">新規の投稿</div>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body upload_content">
+                    <form action="" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-group row">
+                            <label for="obj_name" class="col-2 col-form-label">名称</label>
+                            <div class="col-4">
+                                {{ form.exhibit_name }}
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="obj_description" class="col-2 col-form-label">説明</label>
+                            <div class="col-8">
+                                {{ form.exhibit_desc }}
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="uploader" class="col-2 col-form-label">ファイルを選択</label>
+                            <div class="col-4">
+                                {{ form.post_pic }}
+                            </div>
+                        </div>
+                        <div class="row justify-content-center">
+                            <button type="submit" class="btn btn-primary justify-content-center">送信</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">閉じる</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Show a Modal to EDIT -->
+    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title" id="uploadModalLabel">投稿の編集</div>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body upload_content">
+                    <form action="{% url 'analysis:edit'%}" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <!-- Post exhibit_pk together with other contents -->
+                        <input type="hidden" name="exhibit_pk" value="">
+
+                        <div class="form-group row">
+                            <label for="obj_name" class="col-2 col-form-label">名称</label>
+                            <div class="col-4">
+                                {{ form.exhibit_name }}
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="obj_description" class="col-2 col-form-label">説明</label>
+                            <div class="col-8">
+                                {{ form.exhibit_desc }}
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="uploader" class="col-2 col-form-label">ファイルを選択</label>
+                            <div class="col-4">
+                                {{ form.post_pic }}
+                            </div>
+                        </div>
+                        <div class="row justify-content-center">
+                            <button type="submit" class="btn btn-primary justify-content-center">送信</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">閉じる</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Show a Modal to DELETE -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title" id="uploadModalLabel">投稿の削除</div>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body upload_content">
+                    <form action="{% url 'analysis:delete'%}" method="POST">
+                        {% csrf_token %}
+                        <!-- Post exhibit_pk together with other contents -->
+                        <input type="hidden" name="exhibit_pk" value="">
+                        <div class="row">
+                            削除しますか
+                        </div>
+                        <div class="row justify-content-center">
+                            <div class="col-3">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">キャンセル</button>
+                            </div>
+                            <div class="col-3">
+                                <button type="submit" class="btn btn-danger">削除</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="list_wrapper">
+    <table class="table register_list">
+        <thread>
+            <tr>
+                <th class="table_check"></th>
+                <th class="table_name">名称</th>
+                <th class="table_desc">説明</th>
+                <th class="table_date">日付</th>
+                <th class="table_remove"></th>
+                <th class="table_edit"></th>
+            </tr>
+        </thread>
+        <tbody>
+            {% for exhibit in exhibit_list %}
+            <tr class="exhibit_list">
+                <td><div class="form-check"><input class="form-check-input" type="checkbox" value=""></div></td>
+                <td>{{ exhibit.exhibit_name }}</td>
+                <td>{{ exhibit.exhibit_desc | linebreaksbr | urlize | truncatechars_html:100 }}</td>
+                <td>{{ exhibit.upload_date | date:"Y/m/d H:i:s"}}</td>
+                <td>
+                    <div class="hidden" style="display:none">{{ exhibit.pk }}</div>
+                    <button type="button" id="exhibit_edit" class="btn btn-info ex_edit_btn" data-toggle="modal" data-target="#editModal">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </td>
+                <td>
+                    <div class="hidden" style="display:none">{{ exhibit.pk }}</div>
+                    <button type="button" id="exhibit_delete" class="btn btn-danger ex_delete_btn" data-toggle="modal" data-target="#deleteModal">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="paginate_index">
+        <div class="row justify-content-center">
+            {% include 'analysis/page5.html' %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extrajs %}
+<script>
+$(function(){
+    $('.ex_edit_btn').on('click',function(e){
+        e.preventDefault();
+        var that = this;
+        exhibit_pk = $(that).prev('.hidden').text();
+
+        // AJAX
+        $.ajax({
+            url: "{% url 'analysis:edit_ajax' %}",
+            type: "get",
+            dataType: "json",
+            data:{
+                "exhibit_pk":exhibit_pk,
+            },
+            success: function(data){
+                $('#editModal').find('input[name="exhibit_pk"]').val(data.exhibit_pk);
+                $('#editModal').find('#obj_name').val(data.exhibit_name);
+                $('#editModal').find('#obj_description').val(data.exhibit_desc);
+            },
+        })
+    });
+});
+
+
+$(function(){
+    $('.ex_delete_btn').on('click',function(e){
+        e.preventDefault();
+        var that = this;
+        exhibit_pk = $(that).prev('.hidden').text();
+        $('#deleteModal').find('input[name="exhibit_pk"]').val(exhibit_pk);
+    })
+});
+
+</script>
+{% endblock %}

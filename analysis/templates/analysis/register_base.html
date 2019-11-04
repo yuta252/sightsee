@@ -1,0 +1,21 @@
+{% load static %}
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="{% static 'analysis/css/bootstrap.min.css' %}">
+        <!-- font -->
+        <link href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" rel="stylesheet">
+        <!-- custom css -->
+        <link rel="stylesheet" href="{% static 'analysis/css/custom.css' %}">
+        <title>{% block title %}{% endblock %}</title>
+    </head>
+    <body>
+        {% block content %}
+        {% endblock %}
+        <script src="{% static 'analysis/js/jquery-3.4.1.min.js' %}"></script>
+        <script src="{% static 'analysis/js/bootstrap.bundle.min.js' %}"></script>
+        <script src="{% static 'analysis/js/custom.js' %}"></script>
+    </body>
+</html>

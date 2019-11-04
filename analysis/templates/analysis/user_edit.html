@@ -1,0 +1,38 @@
+{% extends 'sns/base.html' %}
+{% load static %}
+
+{% block title %}
+ユーザー情報編集
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-4">
+            <div class="signup-wrapper">
+                <p class="title">ユーザー情報の編集</p>
+                <form method="post" action="" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <p class="label">ユーザー名</p>
+                    {{ form.username }}
+                    <p class="label">サムネイル画像</p>
+                    <div class="form-group">
+                        <p id="preview"></p>
+                        <p class="upload">
+                            <label>
+                                {{ form.thumbnail }}
+                                <img id="file_loader" class="button mw-100" src="{% static 'sns/images/post3.png' %}" alt=""/>
+                            </label>
+                        </p>
+                    </div>
+                    <p class="label">自己紹介</p>
+                    {{ form.self_intro }}
+                    <button class="signup-btn" type="submit">変更完了</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

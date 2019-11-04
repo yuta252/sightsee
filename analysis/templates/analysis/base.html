@@ -1,0 +1,115 @@
+{% load static %}
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="{% static 'analysis/css/bootstrap.min.css' %}">
+        <!-- font -->
+        <link href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" rel="stylesheet">
+        <!-- graph js-->
+        {% block graphjs %}{% endblock %}
+        <!-- custom css -->
+        <link rel="stylesheet" href="{% static 'analysis/css/custom.css' %}">
+        <title>{% block title %}{% endblock %}</title>
+    </head>
+    <body>
+        <div id="wrapper" class="row ml-0 mr-0">
+            <div id="menu" class="col-2">
+                <div id="category">
+                    <div id="title">
+                        <p id="corporate_logo"><a href="{% url 'analysis:dashboard' %}"><b>Sight seeing</b></a></p>
+                    </div>
+                    <ul>
+                        <a href="{% url 'analysis:dashboard' %}">
+                        <li>
+                            <i class="fas fa-chart-bar fa-fw menu_icon"></i>
+                            <span>ダッシュボード</span>
+                        </li>
+                        </a>
+                        <a href="{% url 'analysis:index' %}">
+                        <li>
+                            <i class="fas fa-file-upload fa-fw menu_icon"></i>
+                            <span>登録</span>
+                        </li>
+                        </a>
+                        <a href="#">
+                        <li>
+                            <i class="far fa-comments menu_icon fa-fw"></i>
+                            <span>レビュー管理</span>
+                        </li>
+                        </a>
+                        <a href="{% url 'analysis:mypage' %}">
+                        <li>
+                            <i class="fas fa-user menu_icon fa-fw"></i>
+                            <span>マイページ</span>
+                        </li>
+                        </a>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Main Contents -->
+            <div id="main_wrapper" class="col-10">
+                <div id="header">
+                    <div class="row">
+                        <!-- Search form -->
+                        <div id="search_wrapper" class="col-7">
+                            <form class="form-inline" method="GET" action="{% url 'analysis:index' %}">
+                                <input class="search-input" type="search" placeholder="検索ワード" aria-label="検索ワード" name="keyword">
+                                <button class="search-btn" type="submit"><i class="fas fa-search ex1"></i></button>
+                            </form>
+                        </div>
+                        <div id="header_menu" class="col-3 offset-2">
+                            <ul class="nav nav-tabs justify-content-end">
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">設定</a>
+                                    <div class="dropdown-menu">
+                                        <a class="dropdown-item" href="{% url 'analysis:email_change' %}">メールアドレス変更</a>
+                                        <a class="dropdown-item" href="{% url 'analysis:password_change' %}">パスワード変更</a>
+                                        <a class="dropdown-item" href="{% url 'analysis:contact' %}">お問い合わせ</a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">ログアウト</a>
+                                    </div>
+                                </li>
+                                <li class="nav-item"><a class="nav-link" href="#">ヘルプ</a></li>
+                            </ul>
+
+                            <!-- Logout Modal -->
+                            <div class="modal" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="logoutModalLabel" aria-hidden="ture">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content logout_content">
+                                        <div class="modal-body">
+                                            <p class="logout_message">Sight Seeからログアウトしますか？</p>
+                                        </div>
+                                        <div class="row justify-content-center ">
+                                            <div class="col-4 logout_btn_wrapper">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">キャンセル</button>
+                                            </div>
+                                            <div class="col-4 logout_btn_wrapper">
+                                                <a href="{% url 'analysis:logout' %}">
+                                                <button type="button" class="btn btn-primary">ログアウト</button>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="contents_wrapper">
+                    {% block content %}
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+
+        <script src="{% static 'analysis/js/jquery-3.4.1.min.js' %}"></script>
+        <script src="{% static 'analysis/js/bootstrap.bundle.min.js' %}"></script>
+        <script src="{% static 'analysis/js/jquery.uploadThumbs.js' %}"></script>
+        <script src="{% static 'analysis/js/custom.js' %}"></script>
+        <!-- AJAX -->
+        {% block extrajs %}{% endblock %}
+    </body>
+</html>

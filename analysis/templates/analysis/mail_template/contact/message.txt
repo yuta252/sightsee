@@ -1,0 +1,3 @@
+{{ user.username }}様からのお問い合わせ内容
+
+{{ contact_content }}

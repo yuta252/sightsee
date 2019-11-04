@@ -1,0 +1,37 @@
+{% extends 'analysis/base.html' %}
+{% load static %}
+
+{% block title %}
+お問い合わせ
+{% endblock %}
+
+{% block content %}
+<div class="main-contents">
+    <div class="row">
+        <div class="col-8">
+            <div class="row justify-content-center">
+                <div class="col-4 contact_form_title">
+                    <p>お問い合わせフォーム</p>
+                </div>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-10">
+                    <form method="post" action="">
+                        {% csrf_token %}
+                        <div class="contact_title_wrapper">
+                            {{ form.contact_title }}
+                        </div>
+                        <div class="contact_content_wrapper">
+                            {{ form.contact_content }}
+                        </div>
+                        <div class="contact_btn">
+                            <button type="submit" class="btn btn-primary">送信</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

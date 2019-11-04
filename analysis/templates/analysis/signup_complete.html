@@ -1,0 +1,27 @@
+{% extends 'analysis/register_base.html' %}
+
+{% block title %}
+本登録完了
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-4">
+            <p>アプリロゴ</p>
+            <div class="signup-wrapper">
+                <p class="title">本登録完了</p>
+                <p>
+                    本登録が完了しました。<br>
+                    登録されたメールアドレスとパスワードでログインしてください。
+                </p>
+                <a href="{% url 'analysis:login' %}">
+                    <div class="login-btn">
+                        ログイン
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

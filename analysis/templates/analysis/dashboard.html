@@ -1,0 +1,225 @@
+{% extends 'analysis/base.html' %}
+
+{% block graphjs %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+{% endblock %}
+
+{% block title %}
+ダッシュボード
+{% endblock %}
+
+{% block content %}
+<div class="summary_wrapper">
+    <div class="summary_title">
+        <span>集計サマリー</span>
+    </div>
+    <div class="row ml-0 mr-0 mt-2">
+        <div class="col-2 year_num">
+            <p class="num_high">5023</p>
+            <p class="num_label">年間来場者数(人)</p>
+        </div>
+        <div class="col-2 day_num">
+            <p class="num_high">50</p>
+            <p class="num_label">本日の来場者数(人)</p>
+        </div>
+    </div>
+</div>
+<div class="graph_wrapper">
+    <div class="user_graph_title">
+        <span>利用者数推移</span>
+    </div>
+    <div class="user_graph_canvas">
+        <canvas id="user_graph"></canvas>
+    </div>
+
+    <div class="attr_graph_wrapper">
+        <div class="row ml-0 mr-0">
+            <div class="col-4 country_graph_canvas">
+                <p class="country_graph_title">地域</p>
+                <canvas id="country_graph"></canvas>
+            </div>
+            <div class="col-4 generation_graph_canvas">
+                <p class="generation_graph_title">年齢</p>
+                <canvas id="generation_graph"></canvas>
+            </div>
+            <div class="col-4 sex_graph_canvas">
+                <p class="sex_graph_title">性別</p>
+                <canvas id="sex_graph"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+    var user_gragh = document.getElementById("user_graph");
+    var user_chart = new Chart(user_graph,{
+        type:'bar',
+        data:{
+            labels:['10/1','10/2','10/3','10/4','10/5','10/6','10/7','10/8','10/9','10/10','10/11','10/12','10/13'],
+            datasets:[
+                {
+                    label:'利用者数',
+                    data:[23, 29, 31, 67, 33, 78, 55, 45, 67, 50, 34, 54, 67],
+                    backgroundColor:"#eb893e",
+                    hoverBackgroundColor:"#eb893e"
+                }
+            ],
+        },
+        options:{
+            title:{
+                display: false,
+                text:'利用者数'
+            },
+            scales:{
+                yAxes:[{
+                    ticks:{
+                    suggestedMin: 0,
+                    suggestedMax: 100,
+                    stepSize: 20,
+                    callback: function(value, index, values){
+                        return value + '人'
+                    }
+                    },
+                    gridLines: {
+                        drawBorder: false,
+                        display: false
+                    }
+                }],
+                xAxes:[{
+                    gridLines:{
+                        display: false
+                    }
+                }]
+            },
+            legend:{
+                display: false,
+            }
+        }
+    });
+
+    var country_gragh = document.getElementById("country_graph");
+    var country_chart = new Chart(country_graph,{
+        type:'doughnut',
+        data:{
+            labels:['Japan','China','Korea','Taipei','America','Europe'],
+            datasets:[{
+                label:'地域',
+                data:[256, 120, 101, 130, 30, 24],
+                backgroundColor: [
+                    "#eb893e",
+                    "#4aeb3e",
+                    "#3ea0eb",
+                    "#eb3e4a",
+                    "#ebdf3e",
+                    "#bbb1a8"
+                ],
+            }]
+        },
+        options:{
+            title:{
+                display:false,
+                text:'地域'
+            },
+            legend:{
+                labels:{
+                    fontSize: 10,
+                    boxWidth: 10,
+                },
+                position: 'right',
+            },
+            layout:{
+                padding:{
+                    top: 15,
+                    bottom: 15,
+                    right: 15,
+                    left: 15
+                }
+            },
+            responsive: true
+        },
+    });
+
+    var generation_gragh = document.getElementById("generation_graph");
+    var generation_chart = new Chart(generation_graph,{
+        type:'doughnut',
+        data:{
+            labels:['~10','10~20','20~30','30~40','40~50','50~60','60~'],
+            datasets:[{
+                label:'年齢',
+                data:[45,123,150,130,101,20,30],
+                backgroundColor: [
+                    "#eb893e",
+                    "#4aeb3e",
+                    "#3ea0eb",
+                    "#eb3e4a",
+                    "#ebdf3e",
+                    "#bbb1a8",
+                    "#3e4aeb"
+                ],
+            }]
+        },
+        options:{
+            title:{
+                display:false,
+                text:'年齢'
+            },
+            legend:{
+                labels:{
+                    fontSize: 10,
+                    boxWidth: 10,
+                },
+                position: 'right',
+            },
+            layout:{
+                padding:{
+                    top: 15,
+                    bottom: 15,
+                    right: 15,
+                    left: 15
+                }
+            },
+            responsive: true
+        },
+    });
+
+    var sex_gragh = document.getElementById("sex_graph");
+    var sex_chart = new Chart(sex_graph,{
+        type:'doughnut',
+        data:{
+            labels:['男性','女性'],
+            datasets:[{
+                label:'性別',
+                data:[156,178],
+                backgroundColor: [
+                    "#eb893e",
+                    "#4aeb3e",
+                ],
+            }]
+        },
+        options:{
+            title:{
+                display:false,
+                text:'年齢'
+            },
+            legend:{
+                labels:{
+                    fontSize: 10,
+                    boxWidth: 10,
+                },
+                position: 'right',
+            },
+            layout:{
+                padding:{
+                    top: 15,
+                    bottom: 15,
+                    right: 15,
+                    left: 15
+                }
+            },
+            responsive: true
+        },
+    });
+</script>
+{% endblock %}

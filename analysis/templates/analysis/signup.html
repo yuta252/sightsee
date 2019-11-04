@@ -1,0 +1,32 @@
+{% extends 'analysis/register_base.html' %}
+{% load static %}
+
+{% block title %}
+Sightseeの登録
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-4">
+            <p>アプリロゴ</p>
+            <div class="signup-wrapper">
+                <p class="title">ユーザー登録</p>
+                <form action="" method="POST">
+                    {% csrf_token %}
+                    <p class="label">ユーザー名</p>
+                    {{ form.username }}
+                    <p class="label">メールアドレス</p>
+                    {{ form.email }}
+                    <p class="label">パスワード</p>
+                    {{ form.password1 }}
+                    <p class="label">パスワードをもう一度入力してください</p>
+                    {{ form.password2 }}
+                    <button class="signup-btn" type="submit">Sightseeアカウント作成</button>
+                    <p>すでにアカウントをお持ちの方　<a href="{% url 'analysis:login' %}">ログイン</a></p>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
