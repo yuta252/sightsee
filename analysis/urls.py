@@ -5,12 +5,14 @@ app_name = 'analysis'
 
 urlpatterns = [
     path('', views.DashboardView.as_view(), name='dashboard'),
-    path('upload/', views.IndexView.as_view(), name='index'),
-    path('edit/', views.EditView.as_view(), name='edit'),
-    path('edit_ajax/', views.EditAJAXView.as_view(), name='edit_ajax'),
+    path('upload/', views.UploadView.as_view(), name='upload'),
+    path('edit/<int:pk>/', views.EditView.as_view(), name='upload_edit'),
     path('delete/', views.DeleteView.as_view(), name='delete'),
     path('mypage/', views.MypageView.as_view(), name='mypage'),
     path('setting/<int:pk>/', views.SettingView.as_view(), name='setting'),
+    path('user_delete/', views.UserLangDeleteView.as_view(), name='userlang_delete'),
+    path('user_edit/', views.UserLangEditView.as_view(), name='userlang_edit'),
+    path('user_edit_ajax/', views.UserLangEditAJAXView.as_view(), name='userlang_edit_ajax'),
     path('email/change/', views.EmailChange.as_view(), name='email_change'),
     path('email/change/done/', views.EmailChangeDone.as_view(), name='email_change_done'),
     path('email/change/complete/<str:token>/', views.EmailChangeComplete.as_view(), name='email_change_complete'),
@@ -27,6 +29,6 @@ urlpatterns = [
     path('password_reset/done/', views.PasswordResetDone.as_view(), name='password_reset_done'),
     path('password_reset/confirm/<uidb64>/<token>/', views.PasswordResetConfirm.as_view(), name='password_reset_confirm'),
     path('password_reset/complete/', views.PasswordResetComplete.as_view(), name='password_reset_complete'),
-    path('sightseeapi/', views.Spotapi.as_view(), name='spotapi'),
-    path('sightdetailapi/', views.SpotDetailapi.as_view(), name='spotDetailapi'),
+    # path('sightseeapi/', views.Spotapi.as_view(), name='spotapi'),
+    # path('sightdetailapi/', views.SpotDetailapi.as_view(), name='spotDetailapi'),
 ]

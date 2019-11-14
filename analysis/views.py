@@ -17,8 +17,8 @@ from django.views import View
 from django.views.generic import TemplateView, ListView, CreateView, DetailView, FormView
 from django.views.generic.edit import ModelFormMixin, UpdateView
 
-from .forms import ExhibitForm, SignupForm, LoginForm, UserEditForm, MyPasswordChangeForm, MyPasswordResetForm, MySetPasswordForm, EmailChangeForm, ContactForm
-from .models import User, Exhibit
+from .forms import ExhibitForm, SignupForm, LoginForm, UserEditForm, UserLangEditForm, MyPasswordChangeForm, MyPasswordResetForm, MySetPasswordForm, EmailChangeForm, ContactForm
+from .models import User, Exhibit, UserLang
 
 User = get_user_model()
 
@@ -29,7 +29,7 @@ class DashboardView(TemplateView):
 
 
 # Exhibit list admin page
-class IndexView(ListView, ModelFormMixin):
+class UploadView(ListView, ModelFormMixin):
 
     model = Exhibit
     form_class = ExhibitForm
@@ -67,71 +67,62 @@ class IndexView(ListView, ModelFormMixin):
         obj.owner = owner
         # TO DO : データベース保存に例外処理追加
         obj.save()
-        return redirect('analysis:index')
+        return redirect('analysis:upload')
 
 
-class EditView(View, ModelFormMixin):
+class EditView(UpdateView):
 
     model = Exhibit
     form_class = ExhibitForm
-
-    def get(self, request, *args, **kwargs):
-        return redirect('analysis:index')
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        exhibit_pk = request.POST['exhibit_pk']
-        if form.is_valid():
-            return self.form_valid(form, exhibit_pk)
-        else:
-            return self.form_invalid(form)
-
-    def form_valid(self, form, pk):
-        """If is_valid is True, put user info into required owner before saving"""
-        owner = self.request.user
-        obj = Exhibit.objects.filter(id=pk)[0]
-        print(obj)
-
-        obj.owner = owner
-        obj.exhibit_name = form.cleaned_data['exhibit_name']
-        obj.exhibit_desc = form.cleaned_data['exhibit_desc']
-        obj.post_pic = form.cleaned_data['post_pic']
-        # TO DO : データベース保存に例外処理追加
-        obj.save()
-        return redirect('analysis:index')
-
-
-# AJAX to edit exhibit data
-class EditAJAXView(View):
-    def get(self, request, *args, **kwargs):
-        exhibit_pk = request.GET.get('exhibit_pk')
-        obj = Exhibit.objects.filter(id=exhibit_pk)[0]
-
-        data = {
-            'exhibit_pk': exhibit_pk,
-            'exhibit_name': obj.exhibit_name,
-            'exhibit_desc': obj.exhibit_desc,
-        }
-        data = json.dumps(data)
-        return HttpResponse(data, content_type='application/json')
-
+    template_name = 'analysis/upload_edit.html'
+    success_url = reverse_lazy('analysis:upload')
 
 class DeleteView(View):
 
     model = Exhibit
 
     def get(self, request, *args, **kwargs):
-        return redirect('analysis:index')
+        return redirect('analysis:upload')
 
     def post(self, request, *args, **kwargs):
         exhibit_pk = request.POST['exhibit_pk']
         # 例外処理の追加
         Exhibit.objects.filter(id=exhibit_pk).delete()
-        return redirect('analysis:index')
+        return redirect('analysis:upload')
 
 # Mypage settings
-class MypageView(TemplateView):
+class MypageView(ListView, ModelFormMixin):
     template_name = 'analysis/mypage.html'
+    model = UserLang
+    form_class = UserLangEditForm
+
+    def get_queryset(self):
+        queryset = UserLang.objects.filter(owner=self.request.user)
+        print(queryset)
+        return queryset
+
+    def get(self, request, *args, **kwargs):
+        self.object = None
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.object = None
+        self.object_list = self.get_queryset()
+        form = self.get_form()
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def form_valid(self, form):
+        """If is_valid is True, put user info into required owner before saving"""
+        owner = self.request.user
+        obj = form.save(commit=False)
+        obj.owner = owner
+        # TO DO : データベース保存に例外処理追加
+        obj.save()
+        return redirect('analysis:mypage')
+
 
 class SettingView(UpdateView):
     template_name = 'analysis/setting.html'
@@ -142,6 +133,77 @@ class SettingView(UpdateView):
     def get_url_success(self):
         return reverse_lazy('analysis:mypage', kwargs={"pk", self.kwargs["pk"]})
     """
+
+# Other language
+class UserLangEditView(View, ModelFormMixin):
+
+    model = UserLang
+    form_class = UserLangEditForm
+
+    def get(self, request, *args, **kwargs):
+        return redirect('analysis:mypage')
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        userlang_pk = request.POST['userlang_pk']
+        # TO DO : Validation 追加。同じ言語を選択した場合登録させないようにする。Language Uniqueにする
+        if form.is_valid():
+            return self.form_valid(form, userlang_pk)
+        else:
+            return self.form_invalid(form)
+
+    def form_valid(self, form, pk):
+        """If is_valid is True, put user info into required owner before saving"""
+        owner = self.request.user
+        obj = UserLang.objects.filter(id=pk)[0]
+
+        obj.owner = owner
+        obj.language = form.cleaned_data['language']
+        obj.username = form.cleaned_data['username']
+        obj.self_intro = form.cleaned_data['self_intro']
+        obj.major_category = form.cleaned_data['major_category']
+        obj.address = form.cleaned_data['address']
+        obj.entrance_fee = form.cleaned_data['entrance_fee']
+        obj.business_hours = form.cleaned_data['business_hours']
+        obj.holiday = form.cleaned_data['holiday']
+
+        # TO DO : データベース保存に例外処理追加
+        obj.save()
+        return redirect('analysis:mypage')
+
+
+class UserLangEditAJAXView(View):
+    def get(self, request, *args, **kwargs):
+        userlang_pk = request.GET.get('userlang_pk')
+        obj = UserLang.objects.filter(id=userlang_pk)[0]
+
+        data = {
+            'userlang_pk': userlang_pk,
+            'userlang_language':obj.language,
+            'userlang_username': obj.username,
+            'userlang_self_intro': obj.self_intro,
+            'userlang_major_category':obj.major_category,
+            'userlang_address':obj.address,
+            'userlang_entrance_fee':obj.entrance_fee,
+            'userlang_business_hours':obj.business_hours,
+            'userlang_holiday':obj.holiday,
+        }
+        data = json.dumps(data)
+        return HttpResponse(data, content_type='application/json')
+
+class UserLangDeleteView(View):
+
+    model = UserLang
+
+    def get(self, request, *args, **kwargs):
+        return redirect('analysis:mypage')
+
+    def post(self, request, *args, **kwargs):
+        userlang_pk = request.POST['userlang_pk']
+        # 例外処理の追加
+        UserLang.objects.filter(id=userlang_pk).delete()
+        return redirect('analysis:mypage')
+
 
 # Password change
 class PasswordChange(PasswordChangeView):
@@ -320,52 +382,102 @@ class PasswordResetComplete(PasswordResetCompleteView):
     template_name = 'analysis/password_reset_complete.html'
 
 
-class Spotapi(View):
+# # API response for android app
+# class Spotapi(View):
 
-    def get(self, request, *args, **kwargs):
-        search_word = request.GET.get('s')
-        spot_list = User.objects.filter(username__icontains=search_word)
+#     DEBUG_URL = 'http://10.0.2.2:80'
 
-        # TO DO : デプロイ時にURL変更
-        DEBUG_URL = 'http://10.0.2.2:80'
-        data = {}
+#     def get(self, request, *args, **kwargs):
+#         lang = request.GET.get('lang')
+#         search_word = request.GET.get('s')
 
-        data["Search"] = []
+#         # TO Do: 他の言語も含めて拡張性のある仕様にする
 
-        for spot in spot_list:
-            spot_dict = {
-                'Title':spot.username,
-                'Major_category':spot.major_category,
-                'Thumbnail':DEBUG_URL + spot.thumbnail.url,
-                'spotpk':spot.pk
-            }
-            data["Search"].append(spot_dict)
+#         if lang == 'ja_JP':
+#             data = self.get_json_ja(lang, search_word)
+#         elif lang == 'en_US':
+#             data = self.get_json_other(lang, search_word)
+#         else:
+#             data = self.get_json_other(lang, search_word)
 
-        data = json.dumps(data, indent=5, ensure_ascii=False)
-        return HttpResponse(data, content_type='application/json')
+#         data = json.dumps(data, indent=5, ensure_ascii=False)
+#         return HttpResponse(data, content_type='application/json')
 
-class SpotDetailapi(View):
+#     def get_json_ja(self, lang, search):
+#         data = {}
+#         data["Search"] = []
+#         spot_list = User.objects.filter(username__icontains=search)
+#         for spot in spot_list:
+#             spot_dict = {
+#                 'Title':spot.username,
+#                 'Major_category':spot.major_category,
+#                 'Thumbnail':self.DEBUG_URL + spot.thumbnail.url,
+#                 'spotpk':spot.pk
+#             }
+#             data["Search"].append(spot_dict)
+#         return data
 
-    def get(self, request, *args, **kwargs):
-        search_word = request.GET.get('i')
-        spot = User.objects.filter(id=search_word)[0]
-        print(spot)
-        # TO DO : デプロイ時にURL変更
-        DEBUG_URL = 'http://10.0.2.2:80'
-        data = {
-            'Title':spot.username,
-            'Category':spot.major_category,
-            'Thumbnail':DEBUG_URL + spot.thumbnail.url,
-            'Information':spot.self_intro,
-            'Address':spot.address,
-            'Telephone':spot.telephone,
-            'EntranceFee':spot.entrance_fee,
-            'BusinessHours':spot.business_hours,
-            'Holiday':spot.holiday,
-        }
+#     def get_json_other(self, lang, search):
+#         data = {}
+#         data["Search"] = []
+#         spot_list = UserLang.objects.filter(username__icontains=search, language='en')
+#         for spot in spot_list:
+#             spot_dict = {
+#                 'Title':spot.username,
+#                 'Major_category':spot.major_category,
+#                 'Thumbnail':self.DEBUG_URL + spot.owner.thumbnail.url,
+#                 'spotpk':spot.owner.pk
+#             }
+#             data["Search"].append(spot_dict)
+#         return data
+# class SpotDetailapi(View):
+#     DEBUG_URL = 'http://10.0.2.2:80'
 
-        data = json.dumps(data, indent=5, ensure_ascii=False)
-        return HttpResponse(data, content_type='application/json')
+#     def get(self, request, *args, **kwargs):
+#         lang = request.GET.get('lang')
+#         spot_id = request.GET.get('i')
+
+#         # TO Do: 他の言語も含めて拡張性のある仕様にする
+#         if lang == 'ja_JP':
+#             data = self.get_json_ja(lang, spot_id)
+#         elif lang == 'en_US':
+#             data = self.get_json_other(lang, spot_id)
+#         else:
+#             data = self.get_json_other(lang, spot_id)
+
+#         data = json.dumps(data, indent=5, ensure_ascii=False)
+#         return HttpResponse(data, content_type='application/json')
+
+#     def get_json_ja(self, lang, spot_id):
+#         spot = User.objects.get(id=spot_id)
+#         data = {
+#             'Title':spot.username,
+#             'Category':spot.major_category,
+#             'Thumbnail':self.DEBUG_URL + spot.thumbnail.url,
+#             'Information':spot.self_intro,
+#             'Address':spot.address,
+#             'Telephone':spot.telephone,
+#             'EntranceFee':spot.entrance_fee,
+#             'BusinessHours':spot.business_hours,
+#             'Holiday':spot.holiday,
+#         }
+#         return data
+
+#     def get_json_other(self, lang, spot_id):
+#         spot = User.objects.get(id=spot_id)
+#         spotlang = spot.userlang_set.filter(language='en')[0]
+#         data = {
+#             'Title':spotlang.username,
+#             'Category':spotlang.major_category,
+#             'Thumbnail':self.DEBUG_URL + spot.thumbnail.url,
+#             'Information':spotlang.self_intro,
+#             'Address':spotlang.address,
+#             'Telephone':spot.telephone,
+#             'EntranceFee':spotlang.entrance_fee,
+#             'BusinessHours':spotlang.business_hours,
+#             'Holiday':spotlang.holiday,
+#         }
+#         return data
 
 
 

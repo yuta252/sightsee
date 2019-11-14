@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
-from .models import User, Exhibit
+from .models import User, Exhibit, UserLang
 
 class MyUserChangeForm(UserChangeForm):
     class Meta:
@@ -35,3 +35,4 @@ class MyUserAdmin(UserAdmin):
 
 admin.site.register(User, MyUserAdmin)
 admin.site.register(Exhibit)
+admin.site.register(UserLang)

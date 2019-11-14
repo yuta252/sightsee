@@ -202,9 +202,8 @@ ul{
 }
 
 
+/* Upload */
 
-
-/* Uploade */
 .upload_content{
     padding: 2rem 4rem;
 }
@@ -264,18 +263,44 @@ ul{
     border-radius: 0.3rem;
 }
 
-.table th{
-    color: #545454;
+.lang_list_wrapper{
+    margin-top: 2rem;
 }
 
-.self_intro_title{
-    font-weight: bold;
+.lang_register_list th{
+    background-color: #f6cfb1;
 }
 
-.self_intro_content{
-    margin-top: 0.5rem;
-    height: 11rem;
+.lang_register_list .user_lang_list{
+    height: 3rem;
 }
+
+.lang_register_list .table_check{
+    width: 3%;
+}
+
+.lang_register_list .table_lang{
+    width: 10%;
+}
+
+.lang_register_list .table_name{
+    width: 20%;
+}
+
+.lang_register_list .table_desc{
+    width: 57%;
+}
+
+.lang_register_list .table_remove{
+    width: 5%;
+}
+
+.lang_register_list .table_edit{
+    width: 5%;
+}
+
+
+
 
 .mypage_detail_table{
     margin-top: 2rem;

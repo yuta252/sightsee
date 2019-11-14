@@ -43,17 +43,27 @@
                                 <th scope="row" class="pl-0">登録メールアドレス</th>
                                 <td>{{ user.email }}</td>
                             </tr>
+                            <tr>
+                                <th scope="row" class="pl-0">電話番号</th>
+                                <td>{{ form.telephone }}</td>
+                            </tr>
                         </tbody>
                     </table>
-                    <p class="self_intro_title">紹介文</p>
-                    <p class="self_intro_content">{{ form.self_intro }}</p>
                 </div>
             </div>
             <table class="table mypage_detail_table">
                 <tbody>
                     <tr>
+                        <th scope="row" class="mypage_detail_title">言語</th>
+                        <td class="mypage_detail_content">日本語</td>
+                    </tr>
+                    <tr>
                         <th scope="row" class="mypage_detail_title">分類項目</th>
                         <td class="mypage_detail_content">{{ form.major_category }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row" class="mypage_detail_title">説明</th>
+                        <td class="mypage_detail_content">{{ form.self_intro }}</td>
                     </tr>
                     <tr>
                         <th scope="row" class="mypage_detail_title">所在地</th>

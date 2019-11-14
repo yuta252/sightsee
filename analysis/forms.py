@@ -1,18 +1,21 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm, PasswordResetForm, SetPasswordForm
 
-from .models import User, Exhibit
+from .models import User, Exhibit, UserLang
 
 
 # Exhibit upload form
 class ExhibitForm(forms.ModelForm):
     class Meta:
         model = Exhibit
-        fields = ('exhibit_name', 'exhibit_desc', 'post_pic')
+        fields = ('exhibit_name', 'exhibit_desc', 'post_pic', 'exhibit_name_en', 'exhibit_desc_en', 'exhibit_name_zh', 'exhibit_desc_zh')
         widgets = {
             'exhibit_name':forms.TextInput(attrs={'id':'obj_name', 'class':'form-control', 'placeholder':'名称を入力'}),
             'exhibit_desc':forms.Textarea(attrs={'id':'obj_description', 'class':'form-control', 'rows':'5'}),
-            # 'post_pic':forms.ImageField(),
+            'exhibit_name_en':forms.TextInput(attrs={'id':'obj_name', 'class':'form-control', 'placeholder':'名称を入力'}),
+            'exhibit_desc_en':forms.Textarea(attrs={'id':'obj_description', 'class':'form-control', 'rows':'5'}),
+            'exhibit_name_zh':forms.TextInput(attrs={'id':'obj_name', 'class':'form-control', 'placeholder':'名称を入力'}),
+            'exhibit_desc_zh':forms.Textarea(attrs={'id':'obj_description', 'class':'form-control', 'rows':'5'}),
         }
 
     # To Do : フォームの is_valid()処理を記述
@@ -72,6 +75,28 @@ class UserEditForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs['class'] = 'form-control'
+
+
+class UserLangEditForm(forms.ModelForm):
+    class Meta:
+        model = UserLang
+        fields = ('language', 'username', 'self_intro', 'major_category', 'address', 'entrance_fee', 'business_hours', 'holiday')
+        widgets = {
+            'language':forms.Select(attrs={'id':'userlang_laguage'}),
+            'username':forms.TextInput(attrs={'id':'userlang_username', 'placeholder':'名称を入力'}),
+            'self_intro':forms.Textarea(attrs={'id':'userlang_self_intro', 'rows':'7'}),
+            'major_category':forms.Select(attrs={'id':'userlang_major_category'}),
+            'address':forms.TextInput(attrs={'id':'userlang_address'}),
+            'entrance_fee':forms.TextInput(attrs={'id':'userlang_entrance_fee'}),
+            'business_hours':forms.TextInput(attrs={'id':'userlang_business_hours'}),
+            'holiday':forms.TextInput(attrs={'id':'userlang_holiday'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control'
+
 
 class MyPasswordChangeForm(PasswordChangeForm):
     def __init__(self, *args, **kwargs):

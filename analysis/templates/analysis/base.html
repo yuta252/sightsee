@@ -27,7 +27,7 @@
                             <span>ダッシュボード</span>
                         </li>
                         </a>
-                        <a href="{% url 'analysis:index' %}">
+                        <a href="{% url 'analysis:upload' %}">
                         <li>
                             <i class="fas fa-file-upload fa-fw menu_icon"></i>
                             <span>登録</span>
@@ -55,7 +55,7 @@
                     <div class="row">
                         <!-- Search form -->
                         <div id="search_wrapper" class="col-7">
-                            <form class="form-inline" method="GET" action="{% url 'analysis:index' %}">
+                            <form class="form-inline" method="GET" action="{% url 'analysis:upload' %}">
                                 <input class="search-input" type="search" placeholder="検索ワード" aria-label="検索ワード" name="keyword">
                                 <button class="search-btn" type="submit"><i class="fas fa-search ex1"></i></button>
                             </form>

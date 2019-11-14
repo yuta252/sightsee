@@ -11,6 +11,7 @@ $(function() {
     });
 });
 
+
 /*
 $(function() {
     $("#comment-input").height(20);//init
