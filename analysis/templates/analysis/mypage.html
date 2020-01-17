@@ -42,12 +42,14 @@
                                         {{ form.username }}
                                     </div>
                                 </div>
+                                <!--
                                 <div class="form-group row">
                                     <label for="obj_description" class="col-2 col-form-label">分類</label>
                                     <div class="col-8">
                                         {{ form.major_category }}
                                     </div>
                                 </div>
+                                -->
                                 <div class="form-group row">
                                     <label for="obj_description" class="col-2 col-form-label">説明</label>
                                     <div class="col-8">
@@ -124,12 +126,14 @@
                                         {{ form.self_intro }}
                                     </div>
                                 </div>
+                                <!--
                                 <div class="form-group row">
                                     <label for="obj_description" class="col-2 col-form-label">分類</label>
                                     <div class="col-8">
                                         {{ form.major_category }}
                                     </div>
                                 </div>
+                                -->
                                 <div class="form-group row">
                                     <label for="obj_description" class="col-2 col-form-label">説明</label>
                                     <div class="col-8">
@@ -207,7 +211,7 @@
 
             <div class="row mt-4">
                 <div class="col-4 pl-5">
-                    <img class="thumbnail img-fluid" src="{{ user.thumbnail.url }}">
+                    <img class="thumbnail img-fluid" src="{{ user.thumbnail_resized.url }}">
                 </div>
                 <div class="col-8">
                     <table class="table">
@@ -346,7 +350,7 @@ $(function(){
                 $('#userlangeditModal').find('#userlang_laguage').val(data.userlang_language);
                 $('#userlangeditModal').find('#userlang_username').val(data.userlang_username);
                 $('#userlangeditModal').find('#userlang_self_intro').val(data.userlang_self_intro);
-                $('#userlangeditModal').find('#userlang_major_category').val(data.userlang_major_category);
+                //$('#userlangeditModal').find('#userlang_major_category').val(data.userlang_major_category);
                 $('#userlangeditModal').find('#userlang_address').val(data.userlang_address);
                 $('#userlangeditModal').find('#userlang_entrance_fee').val(data.userlang_entrance_fee);
                 $('#userlangeditModal').find('#userlang_business_hours').val(data.userlang_business_hours);

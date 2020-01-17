@@ -1,14 +1,15 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm, PasswordResetForm, SetPasswordForm
 
-from .models import User, Exhibit, UserLang
+from .models import User, Exhibit, ExhibitPicture, UserLang
 
 
 # Exhibit upload form
 class ExhibitForm(forms.ModelForm):
+    
     class Meta:
         model = Exhibit
-        fields = ('exhibit_name', 'exhibit_desc', 'post_pic', 'exhibit_name_en', 'exhibit_desc_en', 'exhibit_name_zh', 'exhibit_desc_zh')
+        fields = ('exhibit_name', 'exhibit_desc', 'exhibit_name_en', 'exhibit_desc_en', 'exhibit_name_zh', 'exhibit_desc_zh')
         widgets = {
             'exhibit_name':forms.TextInput(attrs={'id':'obj_name', 'class':'form-control', 'placeholder':'名称を入力'}),
             'exhibit_desc':forms.Textarea(attrs={'id':'obj_description', 'class':'form-control', 'rows':'5'}),
@@ -20,6 +21,15 @@ class ExhibitForm(forms.ModelForm):
 
     # To Do : フォームの is_valid()処理を記述
     # def is_valid():
+
+class ExhibitPictureForm(forms.ModelForm):
+    # 複数の画像ファイルを選択可能
+    post_pic = forms.ImageField(
+        widget = forms.ClearableFileInput(attrs={'class':'custom-file-input upload-portfolio-image','multiple':True, 'style':'display:none;'}),
+    )
+    class Meta:
+        model = ExhibitPicture
+        fields = ('post_pic',)
 
 # Contact from
 class ContactForm(forms.Form):
@@ -62,30 +72,39 @@ class SignupForm(UserCreationForm):
 
 # User edit form
 class UserEditForm(forms.ModelForm):
+
+    thumbnail = forms.ImageField(
+        widget = forms.ClearableFileInput(attrs={'class':'user-thumbnail-input upload-user-image'}),
+    )
     class Meta:
         model = User
         fields = ('username', 'thumbnail', 'self_intro', 'major_category', 'address', 'telephone', 'entrance_fee', 'business_hours', 'holiday')
         widgets = {
-            'username':forms.TextInput(attrs={'class':'obj_username', 'placeholder':'名称を入力'}),
-            'self_intro':forms.Textarea(attrs={'class':'obj_self_intro', 'rows':'7'}),
-            # 'post_pic':forms.ImageField(),
+            'username':forms.TextInput(attrs={'class':'form-control obj_username', 'placeholder':'名称を入力'}),
+            'self_intro':forms.Textarea(attrs={'class':'form-control obj_self_intro', 'rows':'7'}),
+            'major_category':forms.Select(attrs={'class':'form-control'}),
+            'address':forms.TextInput(attrs={'class':'form-control'}),
+            'telephone':forms.TextInput(attrs={'class':'form-control'}),
+            'entrance_fee':forms.TextInput(attrs={'class':'form-control'}),
+            'business_hours':forms.TextInput(attrs={'class':'form-control'}),
+            'holiday':forms.TextInput(attrs={'class':'form-control'}),
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs['class'] = 'form-control'
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     for field in self.fields.values():
+    #         field.widget.attrs['class'] = 'form-control'
 
 
 class UserLangEditForm(forms.ModelForm):
     class Meta:
         model = UserLang
-        fields = ('language', 'username', 'self_intro', 'major_category', 'address', 'entrance_fee', 'business_hours', 'holiday')
+        # 'major_category' fields削除
+        fields = ('language', 'username', 'self_intro', 'address', 'entrance_fee', 'business_hours', 'holiday')
         widgets = {
             'language':forms.Select(attrs={'id':'userlang_laguage'}),
             'username':forms.TextInput(attrs={'id':'userlang_username', 'placeholder':'名称を入力'}),
             'self_intro':forms.Textarea(attrs={'id':'userlang_self_intro', 'rows':'7'}),
-            'major_category':forms.Select(attrs={'id':'userlang_major_category'}),
             'address':forms.TextInput(attrs={'id':'userlang_address'}),
             'entrance_fee':forms.TextInput(attrs={'id':'userlang_entrance_fee'}),
             'business_hours':forms.TextInput(attrs={'id':'userlang_business_hours'}),

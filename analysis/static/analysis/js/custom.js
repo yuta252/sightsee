@@ -1,5 +1,11 @@
 // Difine JQuery except for AJAX
 
+
+
+
+
+/*
+アップロード時にサムネイルを表示する
 $(function() {
     // jQuery Upload Thumbs
     $('form input:file').uploadThumbs({
@@ -10,7 +16,7 @@ $(function() {
         $(this).parents('.upload').hide();
     });
 });
-
+*/
 
 /*
 $(function() {

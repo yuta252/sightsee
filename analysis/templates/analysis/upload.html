@@ -31,21 +31,29 @@
                         {% csrf_token %}
                         <div class="form-group row">
                             <label for="obj_name" class="col-2 col-form-label">名称</label>
-                            <div class="col-4">
-                                {{ form.exhibit_name }}
+                            <div class="col-8">
+                                {{ exhibit_form.exhibit_name }}
                             </div>
                         </div>
                         <div class="form-group row">
                             <label for="obj_description" class="col-2 col-form-label">説明</label>
                             <div class="col-8">
-                                {{ form.exhibit_desc }}
+                                {{ exhibit_form.exhibit_desc }}
                             </div>
                         </div>
                         <div class="form-group row">
+                            <!--
                             <label for="uploader" class="col-2 col-form-label">ファイルを選択</label>
-                            <div class="col-4">
-                                {{ form.post_pic }}
+                            -->
+                            <div class="col-8 offset-2">
+                                <div class="upload-portfolio-image-btn btn btn-primary">
+                                    クリックして画像をアップロード
+                                </div>
+                                {{ picture_form.post_pic }}
                             </div>
+                        </div>
+                        <div class="form-group row portfolio-image-group">
+                            <!--　ここに画像をプレビュー　-->
                         </div>
                         <div class="row justify-content-center">
                             <button type="submit" class="btn btn-primary justify-content-center">送信</button>
@@ -139,6 +147,35 @@
 
 {% block extrajs %}
 <script>
+//複数の画像アップロード時に画像を表示する
+$(function(){
+    $('.upload-portfolio-image-btn').on('click', function(e){
+        e.preventDefault();
+        var inputToUploadPortfolioImage = $(this).next('.upload-portfolio-image');
+        var portfolioImageGroup = inputToUploadPortfolioImage.closest('.form-group').next('.portfolio-image-group');
+        console.log(inputToUploadPortfolioImage);
+        console.log(portfolioImageGroup);
+
+        inputToUploadPortfolioImage.click();
+        inputToUploadPortfolioImage.off('change').on('change', function(e){
+            if(e.target.files && e.target.files[0]){
+                var files = e.target.files
+                console.log(files);
+                for (var i = 0; i < files.length; i++){
+                    var file = files[i];
+                    var reader = new FileReader();
+                    reader.onload = function(e){
+                        portfolioImageGroup.append('<div class="col-3 mb-2"><img class="" style="width:100%; max-width:100%; height: auto;" src="' + e.target.result + '"></div>')
+                    };
+                    reader.readAsDataURL(file)
+                };
+            };
+        })
+    })
+});
+
+
+
 $(function(){
     $('.ex_delete_btn').on('click',function(e){
         e.preventDefault();

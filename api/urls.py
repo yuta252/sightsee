@@ -9,4 +9,5 @@ urlpatterns = [
     path('sightdetail/', views.SpotDetailapi.as_view(), name='upload'),
     path('review/', views.Reviewapi.as_view(), name='review'),
     path('postreview/', views.PostReview.as_view(), name='post_review'),
+    path('cameraresult/', views.CameraResult.as_view(), name='camera_result'),
 ]

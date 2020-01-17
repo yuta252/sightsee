@@ -331,7 +331,7 @@ ul{
 textarea{
     outline: 0;
 }
-
+/*
 #preview{
     max-width: 20rem;
 }
@@ -362,7 +362,7 @@ form .upload .alt{
     border:1px solid #999;
     vertical-align:middle;
 }
-
+*/
 
 .password_change_title{
     font-size: 1.5rem;

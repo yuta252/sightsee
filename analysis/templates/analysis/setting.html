@@ -22,14 +22,17 @@
 
             <div class="row mt-4">
                 <div class="col-4 pl-5">
-                    <div class="form-group">
-                        <p id="preview"></p>
-                        <p class="upload">
-                            <label>
-                                {{ form.thumbnail }}
-                                <img id="file_loader" class="button thumbnail img-fluid" src="{{ user.thumbnail.url }}" alt=""/>
-                            </label>
-                        </p>
+                    <div class="form_thumbnail" style="display: none;">
+                        {{ form.thumbnail }}
+                    </div>
+                    <div class="row mx-0 mb-2 user-image-group">
+                        <!--　ここに画像をプレビュー　-->
+                        <img id="file_loader" class="button thumbnail img-fluid" src="{{ user.thumbnail_resized.url }}" alt=""/>
+                    </div>
+                    <div class="user-image-btn-wrapper">
+                        <div class="btn btn-primary mx-4 user-image-btn">
+                            画像をアップロード
+                        </div>
                     </div>
                 </div>
                 <div class="col-8">
@@ -91,4 +94,36 @@
     </div>
     </form>
 </div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+//画像アップロード時に画像を表示する
+$(function(){
+    $('.user-image-btn').on('click', function(e){
+        e.preventDefault();
+        var inputToUploadUserImage = $(this).parent().prevAll('.form_thumbnail').children('.upload-user-image');
+        var userImageGroup = $(this).parent().prevAll('.user-image-group');
+        console.log(inputToUploadUserImage);
+        console.log(userImageGroup);
+
+        inputToUploadUserImage.click();
+        inputToUploadUserImage.off('change').on('change', function(e){
+            if(e.target.files && e.target.files[0]){
+                var file = e.target.files[0]
+                console.log(file);
+                var reader = new FileReader();
+                reader.onload = function(e){
+                    // 元の画像を削除
+                    userImageGroup.children('#file_loader').remove();
+                    // 追加で選択された画像をプレビュー
+                    userImageGroup.append('<img id="file_loader" class="button thumbnail img-fluid" src="' + e.target.result + '">')
+                };
+                reader.readAsDataURL(file)
+            };
+        })
+    })
+});
+
+</script>
 {% endblock %}

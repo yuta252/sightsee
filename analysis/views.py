@@ -10,15 +10,15 @@ from django.core.signing import BadSignature, SignatureExpired, loads, dumps
 from django.db.models import Q
 from django.http import HttpResponseBadRequest
 from django.http.response import HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render_to_response
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import TemplateView, ListView, CreateView, DetailView, FormView
 from django.views.generic.edit import ModelFormMixin, UpdateView
 
-from .forms import ExhibitForm, SignupForm, LoginForm, UserEditForm, UserLangEditForm, MyPasswordChangeForm, MyPasswordResetForm, MySetPasswordForm, EmailChangeForm, ContactForm
-from .models import User, Exhibit, UserLang
+from .forms import ExhibitForm, ExhibitPictureForm, SignupForm, LoginForm, UserEditForm, UserLangEditForm, MyPasswordChangeForm, MyPasswordResetForm, MySetPasswordForm, EmailChangeForm, ContactForm
+from .models import User, Exhibit, ExhibitPicture, UserLang
 
 User = get_user_model()
 
@@ -29,12 +29,61 @@ class DashboardView(TemplateView):
 
 
 # Exhibit list admin page
-class UploadView(ListView, ModelFormMixin):
+# class UploadView(ListView, ModelFormMixin):
+
+#     model = Exhibit
+#     form_class = ExhibitForm
+#     paginate_by = 10
+#     template_name = 'analysis/upload.html'
+
+#     def get_queryset(self):
+#         queryset = Exhibit.objects.filter(owner=self.request.user)
+
+#         # Search form
+#         keyword = self.request.GET.get('keyword')
+#         if keyword:
+#             queryset = queryset.filter(Q(exhibit_name__icontains=keyword) | Q(exhibit_desc__icontains=keyword))
+
+#         return queryset
+
+#     # Set post form
+#     def get(self, request, *args, **kwargs):
+#         self.object = None
+#         return super().get(request, *args, **kwargs)
+
+#     def post(self, request, *args, **kwargs):
+#         self.object = None
+#         self.object_list = self.get_queryset()
+#         form = self.get_form()
+#         if form.is_valid():
+#             return self.form_valid(form)
+#         else:
+#             return self.form_invalid(form)
+
+#     def form_valid(self, form):
+#         """If is_valid is True, put user info into required owner before saving"""
+#         owner = self.request.user
+#         obj = form.save(commit=False)
+#         obj.owner = owner
+#         # 複数ファイル保存処理
+#         portfolio_images = request.FILES.getlist('image', False)
+#         for image in portfolio_images:
+#             obj.post_pic = image
+#             obj.save()
+#             print("success save images")
+
+#         # TODO : データベース保存に例外処理追加
+#         obj.save()
+#         return redirect('analysis:upload')
+
+class UploadView(ListView):
 
     model = Exhibit
-    form_class = ExhibitForm
     paginate_by = 10
     template_name = 'analysis/upload.html'
+
+    exhibit_form_class = ExhibitForm
+    picture_form_class = ExhibitPictureForm
 
     def get_queryset(self):
         queryset = Exhibit.objects.filter(owner=self.request.user)
@@ -49,25 +98,59 @@ class UploadView(ListView, ModelFormMixin):
     # Set post form
     def get(self, request, *args, **kwargs):
         self.object = None
-        return super().get(request, *args, **kwargs)
+        return self.post(request, *args, **kwargs)
 
+    # def get_context_data(self, **kwargs):
+    #     super().get_context_data(**kwargs)
+    #     context = {
+    #         'exhibit_form':exhibit_form_class,
+    #         'picture_form':picture_form_class
+    #     }
+    #     return context
+
+    # TODO: 送信をダブルクリックした際に2回分登録される
     def post(self, request, *args, **kwargs):
         self.object = None
         self.object_list = self.get_queryset()
-        form = self.get_form()
-        if form.is_valid():
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
+        # form = self.get_form()
+        # 対象物の名前説明と投稿画像フォームを別で処理
+        post_data = request.POST or None
+        exhibit_form = self.exhibit_form_class(post_data, prefix='exhibit')
+        picture_form = self.picture_form_class(post_data, request.FILES, prefix='picture')
+        context = self.get_context_data(exhibit_form=exhibit_form, picture_form=picture_form)
 
-    def form_valid(self, form):
+        if exhibit_form.is_valid():
+            exhibit_pk = self.exhibit_form_save(exhibit_form)
+        # TODO: is_valid()エラー時の処理
+        if picture_form.is_valid():
+            self.picture_form_save(picture_form, exhibit_pk)
+
+        return self.render_to_response(context)
+
+    def exhibit_form_save(self, form):
         """If is_valid is True, put user info into required owner before saving"""
         owner = self.request.user
         obj = form.save(commit=False)
         obj.owner = owner
-        # TO DO : データベース保存に例外処理追加
+        # TODO : データベース保存に例外処理追加
         obj.save()
-        return redirect('analysis:upload')
+        return obj.id
+        # 保存したobjのモデルpkを取得する
+        # exhibit_pk = obj.id
+        # print(obj.id)
+
+    def picture_form_save(self, form, pk):
+        # 複数ファイル保存処理
+        portfolio_images = self.request.FILES.getlist('picture-post_pic')
+        print(portfolio_images)
+        for image in portfolio_images:
+            print(image)
+            obj = ExhibitPicture()
+            # obj = form.save(commit=False)
+            obj.exhibit_id = Exhibit.objects.get(id=pk)
+            obj.post_pic = image
+            obj.save()
+            print("success save images{}".format(image))
 
 
 class EditView(UpdateView):
@@ -106,6 +189,7 @@ class MypageView(ListView, ModelFormMixin):
         return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
+        # TODO: 投稿画像のリサイズ調整
         self.object = None
         self.object_list = self.get_queryset()
         form = self.get_form()
@@ -161,7 +245,7 @@ class UserLangEditView(View, ModelFormMixin):
         obj.language = form.cleaned_data['language']
         obj.username = form.cleaned_data['username']
         obj.self_intro = form.cleaned_data['self_intro']
-        obj.major_category = form.cleaned_data['major_category']
+        # obj.major_category = form.cleaned_data['major_category']
         obj.address = form.cleaned_data['address']
         obj.entrance_fee = form.cleaned_data['entrance_fee']
         obj.business_hours = form.cleaned_data['business_hours']
@@ -182,7 +266,7 @@ class UserLangEditAJAXView(View):
             'userlang_language':obj.language,
             'userlang_username': obj.username,
             'userlang_self_intro': obj.self_intro,
-            'userlang_major_category':obj.major_category,
+            # 'userlang_major_category':obj.major_category,
             'userlang_address':obj.address,
             'userlang_entrance_fee':obj.entrance_fee,
             'userlang_business_hours':obj.business_hours,

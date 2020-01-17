@@ -206,7 +206,7 @@ class Reviewapi(View):
         lang = request.GET.get('lang')
         spot_id = request.GET.get('s')
 
-        # TO Do: 他の言語も含めて拡張性のある仕様にする
+        #TODo: 他の言語も含めて拡張性のある仕様にする
 
         data = self.get_json(lang, spot_id)
         print(data)
@@ -230,4 +230,34 @@ class Reviewapi(View):
             data["Review"].append(review_dict)
         return data
 
+
+class CameraResult(View):
+
+    def get(self, request, *args, **kwargs):
+        data = {}
+        return HttpResponse(data, content_type='application/json')
+
+    def post(self, request, *args, **kwargs):
+        json_request = json.loads(request.body)
+
+        email = json_request["email"]
+        # 50次元の配列を取得
+        result = json_request["result"]
+        print(result)
+        # TODO: 関数でKNNを組み込む
+
+        # DBへの新規登録
+        # Review.objects.create(writer=writer_email, spot=spot_email, lang=lang, review_post=review_post, review_rating=rating_post)
+
+        # JSON response
+        # KNNでの結果に対象物と対象の説明を返す（言語別）
+        data = {
+        }
+
+        data = json.dumps(data, indent=5, ensure_ascii=False)
+        return HttpResponse(data, content_type='application/json')
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super(CameraResult, self).dispatch(*args, **kwargs)
 
