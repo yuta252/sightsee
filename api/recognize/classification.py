@@ -1,91 +1,91 @@
-import pandas as pd
-from train_v1_0_2 import GetModel
-import numpy as np
-from os.path import join
-import os
-# from tqdm import tqdm
-# from tensorflow.python.keras.models import load_model
-# from PIL import Image
-
-from logging import StreamHandler, DEBUG, Formatter, FileHandler, getLogger
 import glob
+from logging import StreamHandler, DEBUG, Formatter, FileHandler, getLogger
+import os
+from os.path import join
 import pickle
 
-
-# TODO: 訓練によりknnモデル、csvファイルは変更する
-FILENAME = "./train/knn_model.pkl"
-PATH_CSV = './input/train.csv'
+import numpy as np
+import pandas as pd
 
 logger = getLogger(__name__)
 
-
-def run(result):
+def run(result, spotid, path_knn, path_csv):
     log_fmt = Formatter('%(asctime)s %(name)s %(lineno)d [%(levelname)s][%(funcName)s] %(message)s')
     handler = StreamHandler()
     handler.setLevel('INFO')
     handler.setFormatter(log_fmt)
     logger.addHandler(handler)
 
+    path_classification = os.path.dirname(os.path.abspath(__file__))
+    handler = FileHandler(os.path.join(path_classification, 'log/classification.py.log'), 'a')
+    handler.setLevel('INFO')
+    handler.setFormatter(log_fmt)
+    logger.setLevel(DEBUG)
+    logger.addHandler(handler)
+
     logger.info('start')
 
-    with open(FILENAME, 'rb') as f:
-        neigh = pickle.load(f)
+    # spot = User.objects.get(id=spotid)
+    # path_knn = spot.knn_model
 
+    with open(path_knn, 'rb') as f:
+        neigh = pickle.load(f)
+    logger.info('successfully load knn model')
+
+    # reshapeデータ
     result = np.array(result)
+    result = result.reshape(1, -1)
 
     distance_test, neighbors_test = neigh.kneighbors(result)
     distance_test, neighbors_test = distance_test.tolist(), neighbors_test.tolist()
 
-    # 最近傍の4データが入っているはず。学習時に近傍数は調整
-    logger('neibors_test:{}'.format(neighbors_test))
-    logger('neibors_test_type:{}'.format(type(neighbors_test)))
+    # 最近傍の4データ取得（学習時に取得データ数調整）
+    logger.info('neibors_test:{}'.format(neighbors_test))
+    logger.info('neibors_test_type:{}'.format(type(neighbors_test)))
 
-    # TODO: 調整
-    logger.debug("train.csv読み込み開始")
     # columns: Image(ファイル名),Id(クラス名)
-    data = pd.read_csv(PATH_CSV)
-    logger.debug("train.csv読み込み完了")
+    # path_csv = spot.exhibit_csv
+    data = pd.read_csv(path_csv)
+    logger.info("successfully load csv file")
 
-    file_id_mapping = {k: v for k, v in zip(data.Image.values, data.Id.values)}
+    train_files = data.Image.values.tolist()
 
-    preds_str = []
+    # result: 4タプル(推測クラス, 距離)の配列
+    result_list = []
+    preds_class = []
     for distance, neighbor_ in zip(distance_test, neighbors_test):
-        sample_result = []
-        sample_classes = []
         for d, n in zip(distance, neighbor_):
-            # ファイルパスからファイル名を取得、辞書マップによりクラス名を取得
-            # train_filesファイル（trainのときのファイル構成パスリスト）をpickleするか
-            # ファイルの順番とファイル名さえわかればマッピングできる
-            train_file = train_files[n].split(os.sep)[-1]
-            class_train = file_id_mapping[train_file]
-            sample_classes.append(class_train)
-            sample_result.append((class_train, d))
+            class_train = train_files[n].split(os.sep)[-2]
+            result_list.append((class_train, d))
 
-        sample_result.sort(key=lambda x: x[1])
-        sample_result = sample_result[:5]
-        preds_str.append(" ".join(x[0] for x in sample_result))
+    result_list.sort(key=lambda x: x[1])
+    result_list = result_list[:4]
+    logger.info('inferrence result: {}'.format(result_list))
 
-    return preds_str[0]
+    for re in result_list:
+        preds_class.append(re[0])
+    # 結果の重複防止
+    preds_class = set(preds_class)
+    logger.info('preds_class: {}'.format(preds_class))
 
+    return preds_class
 
 
 if __name__ == "__main__":
     # 50次元のテストデータ
-    data = [[ 3.95560324e-01, -3.32569405e-02,  1.51777402e-01,
-        -1.21975750e-01, -9.69380364e-02, -6.25947565e-02,
-        -1.19426154e-01,  9.19620022e-02,  2.29892910e-01,
-        -4.54800278e-02, -1.66264288e-02, -2.26741750e-02,
-        -6.67407736e-02,  4.42054421e-02, -1.22564390e-01,
-         4.46661152e-02,  2.07357839e-01,  1.09907813e-01,
-         1.83392633e-02,  2.75023937e-01,  1.65000651e-02,
-        -3.90385580e-03, -1.75637081e-01,  1.39454808e-02,
-        -1.79190651e-01, -1.25446573e-01,  5.48238307e-02,
-        -1.88904762e-01,  1.20141599e-02,  8.56271684e-02,
-        -2.69792795e-01, -1.37547851e-01, -1.19984902e-01,
-        -9.63136554e-02,  1.00750942e-02,  8.97271484e-02,
-         6.51583076e-02, -3.38751465e-01,  2.06905544e-01,
-        -9.55970678e-03, -1.78422719e-01, -7.07809851e-02,
-        -9.33320001e-02,  1.22171663e-01, -1.11689575e-01,
-        -1.49035111e-01, -1.30135253e-01,  3.95974591e-02,
-        -1.83908418e-01, -4.65764105e-03]]
-    run(data)
+    data = [[0.090379998087883, -0.02304992265999317, 0.09324495494365692, 0.03659585490822792,
+    -0.08478889614343643, 0.07788155972957611, -0.17538823187351227, -0.09224985539913177, 0.11496009677648544,
+    0.059696298092603683, 0.015959976240992546, 0.15123695135116577, 0.1161128357052803, 0.08850878477096558,
+    0.04640551283955574, 0.017030833289027214, -0.07481292635202408, 0.04273553937673569, -0.1365722268819809,
+    -0.04039325565099716, -0.20203840732574463, 0.1545790582895279, 0.09156696498394012, 0.00681038573384285,
+    0.31029212474823, 0.30691465735435486, -0.2853172719478607, 0.06589222699403763, -0.21532975137233734,
+    -0.024044442921876907, 0.03281234949827194, 0.24716702103614807, 0.27094537019729614, 0.08241242170333862,
+    -0.012147201225161552, 0.057617418467998505, -0.2344937026500702, 0.09834333509206772, -0.11049892753362656,
+    0.01781706139445305, -0.03429834917187691, -0.1020512580871582, 0.14464731514453888, -0.1281920075416565,
+    0.03599584102630615, 0.00722708972170949, 0.25041672587394714, 0.15752050280570984, -0.22756731510162354, -0.16859398782253265]]
+
+    spotid = '1000000'
+    spotid = int(spotid)
+    path_knn = '/Users/nakano/webapp/sightsee/sightsee/images/infference/1000000/knn_model_1000000_20200_sVrsM2D.pkl'
+    path_csv = '/Users/nakano/webapp/sightsee/sightsee/images/infference/1000000/csv_spot_1000000_202001_4gde1Zj.csv'
+    run(data, spotid, path_knn, path_csv)

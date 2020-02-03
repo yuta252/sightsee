@@ -9,9 +9,9 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from analysis.models import User, UserLang
+from analysis.models import User, UserLang, Exhibit, ExhibitPicture
 from .models import AppUser, Review
-
+from .recognize.classification import run
 
 User = get_user_model()
 
@@ -71,20 +71,20 @@ class AuthMailView(View):
 # API response for android app
 class Spotapi(View):
 
-    DEBUG_URL = 'http://10.0.2.2:80'
+    DEBUG_URL = 'http://192.168.43.36/'
+    # DEBUG_URL = 'http://10.0.2.2:80/'
 
     def get(self, request, *args, **kwargs):
-        lang = request.GET.get('lang')
+        lang = request.GET.get('gl')
+        country = request.GET.get('hl')
         search_word = request.GET.get('s')
 
         # TO Do: 他の言語も含めて拡張性のある仕様にする
-
-        if lang == 'ja_JP':
+        if lang == 'ja':
             data = self.get_json_ja(lang, search_word)
-        elif lang == 'en_US':
-            data = self.get_json_other(lang, search_word)
         else:
             data = self.get_json_other(lang, search_word)
+        
 
         data = json.dumps(data, indent=5, ensure_ascii=False)
         return HttpResponse(data, content_type='application/json')
@@ -92,12 +92,24 @@ class Spotapi(View):
     def get_json_ja(self, lang, search):
         data = {}
         data["Search"] = []
-        spot_list = User.objects.filter(username__icontains=search)
+
+        # 初期の状態(all)の場合のみ全て抽出
+        if(search == 'all'):
+            spot_list = User.objects.all().order_by('date_joined').reverse()
+        else:
+            spot_list = User.objects.filter(username__icontains=search)
+        
         for spot in spot_list:
+            # TODO: 本番環境では画像処理変更
+            thumbnail_url = spot.thumbnail.url
+            url_split = thumbnail_url.split('/')[-4:]
+            url_join = '/'.join(url_split)
+            print(url_join)
+
             spot_dict = {
                 'Title':spot.username,
                 'Major_category':spot.major_category,
-                'Thumbnail':self.DEBUG_URL + spot.thumbnail.url,
+                'Thumbnail':self.DEBUG_URL + url_join,
                 'spotpk':spot.pk
             }
             data["Search"].append(spot_dict)
@@ -106,12 +118,25 @@ class Spotapi(View):
     def get_json_other(self, lang, search):
         data = {}
         data["Search"] = []
-        spot_list = UserLang.objects.filter(username__icontains=search, language='en')
+        
+        # 英語対応か他言語対応かは観光地による
+        # ユーザーにsettingから言語を変更してもらう
+        if(search == 'all'):
+            spot_list = UserLang.objects.filter(language=lang)
+        else:
+            spot_list = UserLang.objects.filter(username__icontains=search, language=lang)
+        
         for spot in spot_list:
+            # TODO: 本番環境では画像処理変更
+            thumbnail_url = spot.thumbnail.url
+            url_split = thumbnail_url.split('/')[-4:]
+            url_join = '/'.join(url_split)
+            print(url_join)
+
             spot_dict = {
                 'Title':spot.username,
                 'Major_category':spot.major_category,
-                'Thumbnail':self.DEBUG_URL + spot.owner.thumbnail.url,
+                'Thumbnail':self.DEBUG_URL + url_join,
                 'spotpk':spot.owner.pk
             }
             data["Search"].append(spot_dict)
@@ -119,29 +144,36 @@ class Spotapi(View):
 
 
 class SpotDetailapi(View):
-    DEBUG_URL = 'http://10.0.2.2:80'
+    DEBUG_URL = 'http://192.168.43.36/'
+    # DEBUG_URL = 'http://10.0.2.2:80/'
 
     def get(self, request, *args, **kwargs):
-        lang = request.GET.get('lang')
+        lang = request.GET.get('gl')
         spot_id = request.GET.get('i')
 
         # TO Do: 他の言語も含めて拡張性のある仕様にする
-        if lang == 'ja_JP':
+        if lang == 'ja':
             data = self.get_json_ja(lang, spot_id)
-        elif lang == 'en_US':
-            data = self.get_json_other(lang, spot_id)
         else:
             data = self.get_json_other(lang, spot_id)
 
         data = json.dumps(data, indent=5, ensure_ascii=False)
+        print(data)
         return HttpResponse(data, content_type='application/json')
 
     def get_json_ja(self, lang, spot_id):
         spot = User.objects.get(id=spot_id)
+
+        # TODO: 本番環境では画像処理変更
+        thumbnail_url = spot.thumbnail.url
+        url_split = thumbnail_url.split('/')[-4:]
+        url_join = '/'.join(url_split)
+        print(url_join)
+        
         data = {
             'Title':spot.username,
             'Category':spot.major_category,
-            'Thumbnail':self.DEBUG_URL + spot.thumbnail.url,
+            'Thumbnail':self.DEBUG_URL + url_join,
             'Information':spot.self_intro,
             'Address':spot.address,
             'Telephone':spot.telephone,
@@ -153,11 +185,18 @@ class SpotDetailapi(View):
 
     def get_json_other(self, lang, spot_id):
         spot = User.objects.get(id=spot_id)
-        spotlang = spot.userlang_set.filter(language='en')[0]
+        spotlang = spot.userlang_set.filter(language=lang)[0]
+
+        # TODO: 本番環境では画像処理変更
+        thumbnail_url = spot.thumbnail.url
+        url_split = thumbnail_url.split('/')[-4:]
+        url_join = '/'.join(url_split)
+        print(url_join)
+
         data = {
             'Title':spotlang.username,
             'Category':spotlang.major_category,
-            'Thumbnail':self.DEBUG_URL + spot.thumbnail.url,
+            'Thumbnail':self.DEBUG_URL + url_join,
             'Information':spotlang.self_intro,
             'Address':spotlang.address,
             'Telephone':spot.telephone,
@@ -233,6 +272,10 @@ class Reviewapi(View):
 
 class CameraResult(View):
 
+    # TODO : デバッグ用のURL
+    DEBUG_URL = 'http://192.168.43.36/'
+    # DEBUG_URL = 'http://10.0.2.2:80/'
+
     def get(self, request, *args, **kwargs):
         data = {}
         return HttpResponse(data, content_type='application/json')
@@ -241,18 +284,46 @@ class CameraResult(View):
         json_request = json.loads(request.body)
 
         email = json_request["email"]
+        # TODO: Android側にもJSON実装
+        spotid = json_request["spot_id"]
         # 50次元の配列を取得
         result = json_request["result"]
         print(result)
+        print(type(result))
         # TODO: 関数でKNNを組み込む
+        # spotid: integer
+        spotid = int(spotid)
+        spot = User.objects.get(id=spotid)
 
-        # DBへの新規登録
-        # Review.objects.create(writer=writer_email, spot=spot_email, lang=lang, review_post=review_post, review_rating=rating_post)
+        # path objectをstr
+        path_knn = str(spot.knn_model)
+        path_csv = str(spot.exhibit_csv)
+        
+        # 推論プロセス
+        exhibit_list = run(result, spotid, path_knn, path_csv)
 
-        # JSON response
-        # KNNでの結果に対象物と対象の説明を返す（言語別）
-        data = {
-        }
+        # TODO : DBへの履歴登録（トレースする）
+        # JSON responseの生成
+        data = {}
+        data["Result"] = []
+        for exhibit_pk in exhibit_list:
+            exhibit = Exhibit.objects.get(id=exhibit_pk)
+
+            # exhibitの外部キーによりExhibitの全ての投稿写真の中から一つ選択する
+            exhibit_image_url = exhibit.exhibit_pk.all()[0].post_pic.url
+            # TODO: Modelのフォルダパス変更後に変更する必要あり
+            url_split = exhibit_image_url.split('/')[-5:]
+            url_join = '/'.join(url_split)
+            print(url_join)
+
+            exhibit_dict = {
+                'exhibit_id':exhibit_pk,
+                'exhibit_name':exhibit.exhibit_name,
+                'exhibit_desc':exhibit.exhibit_desc,
+                'exhibit_image': self.DEBUG_URL + url_join,
+            }
+            data["Result"].append(exhibit_dict)
+        print(data)
 
         data = json.dumps(data, indent=5, ensure_ascii=False)
         return HttpResponse(data, content_type='application/json')

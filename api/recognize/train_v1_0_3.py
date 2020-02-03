@@ -31,34 +31,43 @@ image_size = 224
 path_base = '../input/sightsee/'
 path_train = join(path_base, 'train')
 path_test = join(path_base, 'test')
-path_csv = join(path_base, 'train.csv')
+path_csv = join(path_base, 'result_tmp/csv', 'train_20200116_125145.csv')
 
 now = datetime.datetime.now()
 path_model_checkpoint = join(path_base, 'triplet_chkpt_{}.hdf5'.format(now.strftime('%Y%m%d_%H%M%S')))
-path_model_trip = join(path_base, 'triplet_{}.hdf5'.format(now.strftime('%Y%m%d_%H%M%S')))
-path_model_emb = join(path_base, 'embedding_{}.hdf5'.format(now.strftime('%Y%m%d_%H%M%S')))
-path_tfmodel_trip = join(path_base, 'triplet_{}.tflite'.format(now.strftime('%Y%m%d_%H%M%S')))
-path_tfmodel_emb = join(path_base, 'embedding_{}.tflite'.format(now.strftime('%Y%m%d_%H%M%S')))
+# path_model_trip = join(path_base, 'triplet_{}.hdf5'.format(now.strftime('%Y%m%d_%H%M%S')))
+path_model_emb = join(path_base, 'result_tmp/hdf5', 'embedding_{}.hdf5'.format(now.strftime('%Y%m%d_%H%M%S')))
+# path_tfmodel_trip = join(path_base, 'triplet_{}.tflite'.format(now.strftime('%Y%m%d_%H%M%S')))
+path_tfmodel_emb = join(path_base, 'result_tmp/tflite', 'embedding_{}.tflite'.format(now.strftime('%Y%m%d_%H%M%S')))
 
-# helping function
+
 class sample_gen(object):
     def __init__(self, file_class_mapping):
+        # {filepath : class}の辞書配列
         self.file_class_mapping= file_class_mapping
+        # {class : filepath}の辞書配列
         self.class_to_list_files = defaultdict(list)
+        # filepathの配列
         self.list_all_files = list(file_class_mapping.keys())
+        # filepathの総数
         self.range_all_files = list(range(len(self.list_all_files)))
 
         for file, class_ in file_class_mapping.items():
             self.class_to_list_files[class_].append(file)
 
+        # クラスの配列（重複なし）
         self.list_classes = list(set(self.file_class_mapping.values()))
+        # クラス数
         self.range_list_classes= range(len(self.list_classes))
+        # 各クラス数の比率配列
         self.class_weight = np.array([len(self.class_to_list_files[class_]) for class_ in self.list_classes])
         self.class_weight = self.class_weight/np.sum(self.class_weight)
 
     def get_sample(self):
+        # クラス数の比率により1つクラスを選択し、クラスの中からランダムにexamples_class_idxを2つ抽出
         class_idx = np.random.choice(self.range_list_classes, 1, p=self.class_weight)[0]
         examples_class_idx = np.random.choice(range(len(self.class_to_list_files[self.list_classes[class_idx]])), 2)
+
         positive_example_1, positive_example_2 = \
             self.class_to_list_files[self.list_classes[class_idx]][examples_class_idx[0]],\
             self.class_to_list_files[self.list_classes[class_idx]][examples_class_idx[1]]
@@ -96,9 +105,12 @@ def gen(triplet_gen):
 
         for i in range(batch_size):
             positive_example_1, negative_example, positive_example_2, positive_class, negative_class = triplet_gen.get_sample()
-            path_pos1 = join(path_train, positive_class, positive_example_1)
-            path_neg = join(path_train, negative_class, negative_example)
-            path_pos2 = join(path_train, positive_class, positive_example_2)
+            # path_pos1 = join(path_train, positive_class, positive_example_1)
+            # path_neg = join(path_train, negative_class, negative_example)
+            # path_pos2 = join(path_train, positive_class, positive_example_2)
+            path_pos1 = positive_example_1
+            path_neg = negative_example
+            path_pos2 = positive_example_2
 
             positive_example_1_img = read_and_resize(path_pos1)
             negative_example_img = read_and_resize(path_neg)
@@ -256,8 +268,8 @@ def main():
 
     triplet_model.compile(loss=None, optimizer=Adam(lr=0.0001))
     # use_multiprocessing=Falseにすることでデッドロック回避
-    history = triplet_model.fit_generator(gen_tr, validation_data=gen_te, epochs=4, verbose=1, workers=4, \
-        steps_per_epoch=6, validation_steps=2, use_multiprocessing=True)
+    history = triplet_model.fit_generator(gen_tr, validation_data=gen_te, epochs=4, verbose=1, workers=1, \
+        steps_per_epoch=6, validation_steps=2, use_multiprocessing=False)
 
     logger.info('train_loss:{}'.format(history.history['loss']))
     logger.info('val_loss:{}'.format(history.history['val_loss']))
@@ -265,28 +277,18 @@ def main():
     # Linux環境では消す
     # eva_plot(history, 4)
 
-    # save model to hdf5
-    # triplet_modelは必要ないので学習時消す
-    triplet_model.save(path_model_trip)
-    # save embedding model
+    # embedding_modelの保存 各事業所ごとのknnで読み込む
     embedding_model.save(path_model_emb)
 
-    # convert triplet model to tensorflow lite
-    # triplet_modelのtfliteファイルは必要ないので消す
-    converter1 = tf.lite.TFLiteConverter.from_keras_model(triplet_model)
-    tflite_model1 = converter1.convert()
+    # tensorflow liteのtfliteファイルへの変換
+    # tensroflow-gpuの場合、attribute error発生
+    # converter2 = tf.lite.TFLiteConverter.from_keras_model(embedding_model)
+    # tflite_model2 = converter2.convert()
 
-    converter2 = tf.lite.TFLiteConverter.from_keras_model(embedding_model)
-    tflite_model2 = converter2.convert()
-
-    logger.info('before save tfmodel')
-    with open(path_tfmodel_trip, mode="wb") as f:
-        f.write(tflite_model1)
-        logger.info('tfmodel for triplet saved successfully')
-
-    with open(path_tfmodel_emb, mode="wb") as f:
-        f.write(tflite_model2)
-        logger.info('tfmodel for embedding saved successfully')
+    # logger.info('before save tfmodel')
+    # with open(path_tfmodel_emb, mode="wb") as f:
+    #     f.write(tflite_model2)
+    # logger.info('tfmodel for embedding saved successfully')
 
     logger.info('end')
 if __name__ == "__main__":

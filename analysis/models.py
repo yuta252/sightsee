@@ -13,22 +13,37 @@ from imagekit.processors import ResizeToFill
 
 
 def get_photo_upload_path(self, filename):
-        """
-            ユーザーごとにアップロードするフォルダパスを変更
-        """
-        user_dir_path = settings.MEDIA_ROOT + "/postpic/" + str(self.exhibit_id.owner.id) + "/" + str(self.exhibit_id.id)
-        if not os.path.exists(user_dir_path):
-            os.makedirs(user_dir_path)
-        return user_dir_path + "/" + str(self.id) + '.jpg'
+    """
+        ユーザーごとにアップロードするフォルダパスを変更
+    """
+    user_dir_path = settings.MEDIA_ROOT + "/postpic/" + str(self.exhibit_id.owner.id) + "/" + str(self.exhibit_id.id)
+    if not os.path.exists(user_dir_path):
+        os.makedirs(user_dir_path)
+    return user_dir_path + "/" + str(self.id) + '.jpg'
+    # TODO : 本番環境のときpath入れ替え
+    # return "/postpic/" + str(self.exhibit_id.owner.id) + "/" + str(self.exhibit_id.id) + "/" + + str(self.id) + '.jpg'
 
 def get_thumbnail_path(self, filename):
-        """
-            ユーザーごとにthumbnailフォルダパスを変更
-        """
-        user_dir_path = settings.MEDIA_ROOT + "/thumbnail/" + str(self.id)
-        if not os.path.exists(user_dir_path):
-            os.makedirs(user_dir_path)
-        return user_dir_path + "/" + str(self.id) + '.jpg'
+    """
+        ユーザーごとにthumbnailフォルダパスを変更
+    """
+    user_dir_path = settings.MEDIA_ROOT + "/thumbnail/" + str(self.id)
+    if not os.path.exists(user_dir_path):
+        os.makedirs(user_dir_path)
+    return user_dir_path + "/" + str(self.id) + '.jpg'
+    # TODO : 本番環境のときpath入れ替え
+    # return "/thumbnail/" + str(self.id) + '.jpg'
+
+def get_infference_model_path(self, filename):
+    """
+        各事業所ごとにknn推論モデルとexhibitのcsvファイルを格納するパス
+    """
+    user_dir_path = settings.MEDIA_ROOT + "/infference/" + str(self.id)
+    if not os.path.exists(user_dir_path):
+        os.makedirs(user_dir_path)
+    return user_dir_path + "/" + filename
+
+
 class UserManager(BaseUserManager):
     """User Manager"""
     use_in_migration = True
@@ -109,7 +124,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     entrance_fee = models.CharField('entrance fee', max_length=150, null=True, blank=True, help_text='Please enter within 150 characters.')
     business_hours = models.CharField('business hours', max_length=100, null=True, blank=True, help_text='Please enter within 100 characters.')
     holiday = models.CharField('holiday', max_length=30, null=True, blank=True, help_text='Please enter within 30 characters.')
-    # knn_model = models.FileField('knn model', upload_to=, null=True, blank=True)
+    knn_model = models.FileField('knn model', upload_to=get_infference_model_path, null=True, blank=True)
+    exhibit_csv = models.FileField('exhibit csv list', upload_to=get_infference_model_path, null=True, blank=True)
     # TODO: 最新の情報（要検討）
     is_staff = models.BooleanField('staff_status', default=False, help_text='管理サイトにログイン可能かどうか指定してください。')
     is_active = models.BooleanField('active', default='True', help_text='ユーザーがアクティブ状態か指定してください。')
