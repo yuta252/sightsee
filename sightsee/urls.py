@@ -22,6 +22,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('analysis.urls')),
     path('api/', include('api.urls')),
+    path('cameraapi/', include('cameraapi.urls')),
+    path('api2/', include('iOSapi.urls')),
 ]
 
 

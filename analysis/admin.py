@@ -18,7 +18,7 @@ class MyUserAdmin(UserAdmin):
 
     fieldsets = (
         (None, {'fields':('id', 'email', 'password')}),
-        ('Personal info', {'fields':('username', 'thumbnail', 'self_intro', 'major_category', 'address', 'telephone', 'entrance_fee', 'business_hours', 'holiday', 'knn_model', 'exhibit_csv')}),
+        ('Personal info', {'fields':('username', 'thumbnail', 'self_intro', 'major_category', 'address_prefecture', 'address_city', 'address_street', 'latitude', 'longitude', 'telephone', 'entrance_fee', 'business_hours', 'holiday', 'rating_sum', 'rating_amount', 'knn_model', 'exhibit_csv')}),
         ('Permissions', {'fields':('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Important dates', {'fields':('last_login', 'date_joined')}),
     )
@@ -32,6 +32,7 @@ class MyUserAdmin(UserAdmin):
     list_filter = ('is_active', 'is_staff', 'is_superuser', 'groups')
     search_fields = ('email', 'username')
     ordering = ('email',)
+
 
 admin.site.register(User, MyUserAdmin)
 admin.site.register(Exhibit)

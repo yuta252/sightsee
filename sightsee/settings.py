@@ -25,12 +25,14 @@ SECRET_KEY = '%^#8)ng=(=-h7#=3*ki321l4e3=4goupwdu)-mb0hof7xcy0m5'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0', '10.0.2.2','192.168.10.102', '192.168.43.36']
+ALLOWED_HOSTS = ['0.0.0.0', '10.0.2.2', '192.168.43.36', 'startlens.local']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'iOSapi.apps.IosapiConfig',
+    'cameraapi.apps.CameraapiConfig',
     'api.apps.ApiConfig',
     'analysis.apps.AnalysisConfig',
     'django.contrib.admin',

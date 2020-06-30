@@ -70,11 +70,29 @@
                     </tr>
                     <tr>
                         <th scope="row" class="mypage_detail_title">所在地</th>
-                        <td class="mypage_detail_content">{{ form.address }}</td>
+                        <td class="mypage_detail_content">
+                            {{ form.address_prefecture }}
+                            {{ form.address_city }}
+                            {{ form.address_street }}
+                            <div class="mt-4">
+                                <div class="btn btn-primary geo-get-btn">
+                                    取得
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr style="display: none;">
+                        <th scope="row" class="mypage_detail_title">緯度</th>
+                        <td class="mypage_detail_content">{{ form.latitude }}</td>
+                    </tr>
+                    <tr style="display: none;">
+                        <th scope="row" class="mypage_detail_title">経度</th>
+                        <td class="mypage_detail_content">{{ form.longitude }}</td>
                     </tr>
                     <tr>
-                        <th scope="row" class="mypage_detail_title">電話番号</th>
-                        <td class="mypage_detail_content">{{ form.telephone }}</td>
+                        <th scope="row" class="mypage_detail_title">URL</th>
+                        <td class="mypage_detail_content">{{ form.url }}</td>
                     </tr>
                     <tr>
                         <th scope="row" class="mypage_detail_title">料金</th>
@@ -124,6 +142,33 @@ $(function(){
         })
     })
 });
+
+// Geocoding APIにより住所から緯度、経度を表示する
+$(function(){
+    $('.geo-get-btn').on('click',function(e){
+        e.preventDefault();
+        var that = this;
+        address_pre = $(that).parent().siblings('.add_pre').val();
+        address_city = $(that).parent().siblings('.add_city').val();
+        address_street = $(that).parent().siblings('.add_street').val();
+
+        api_key = "AIzaSyCCZexIEtU_mcR_GsF_m4BDgNS5nK-TpoQ"
+
+        // AJAX
+        $.ajax({
+            url: "https://maps.googleapis.com/maps/api/geocode/json?address=" + address_pre + "+" + address_city + "+" + address_street + "&key=" + api_key,
+            type: "get",
+            dataType: "json",
+            data:{},
+            success: function(data){
+                $('#latitude').val(data.results[0].geometry.location.lat);
+                $('#longitude').val(data.results[0].geometry.location.lng);
+            },
+        })
+    });
+});
+
+
 
 </script>
 {% endblock %}

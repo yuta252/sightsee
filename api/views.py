@@ -71,8 +71,8 @@ class AuthMailView(View):
 # API response for android app
 class Spotapi(View):
 
-    DEBUG_URL = 'http://192.168.43.36/'
-    # DEBUG_URL = 'http://10.0.2.2:80/'
+    # DEBUG_URL = 'http://192.168.43.36/'
+    DEBUG_URL = 'http://10.0.2.2:80/'
 
     def get(self, request, *args, **kwargs):
         lang = request.GET.get('gl')
@@ -143,9 +143,77 @@ class Spotapi(View):
         return data
 
 
+class Mapapi(View):
+
+    #DEBUG_URL = 'http://192.168.43.36/'
+    DEBUG_URL = 'http://10.0.2.2:80/'
+
+    def get(self, request, *args, **kwargs):
+        lang = request.GET.get('gl')
+
+        # TO Do: 他の言語も含めて拡張性のある仕様にする
+        if lang == 'ja':
+            data = self.get_json_ja(lang)
+        else:
+            data = self.get_json_other(lang)
+
+        data = json.dumps(data, indent=5, ensure_ascii=False)
+        return HttpResponse(data, content_type='application/json')
+
+    def get_json_ja(self, lang):
+        data = {}
+        data["Search"] = []
+
+        spot_list = User.objects.all().order_by('date_joined').reverse()
+
+        for spot in spot_list:
+            # TODO: 本番環境では画像処理変更
+            thumbnail_url = spot.thumbnail.url
+            url_split = thumbnail_url.split('/')[-4:]
+            url_join = '/'.join(url_split)
+            print(url_join)
+
+            spot_dict = {
+                'Title':spot.username,
+                'Major_category':spot.major_category,
+                'Thumbnail':self.DEBUG_URL + url_join,
+                'spotpk':spot.pk,
+                'lat':spot.latitude,
+                'lon':spot.longitude,
+            }
+            data["Search"].append(spot_dict)
+        return data
+
+    def get_json_other(self, lang):
+        data = {}
+        data["Search"] = []
+        
+        # 英語対応か他言語対応かは観光地による
+        # ユーザーにsettingから言語を変更してもらう
+        spot_list = UserLang.objects.filter(language=lang)
+
+        for spot in spot_list:
+            # TODO: 本番環境では画像処理変更
+            thumbnail_url = spot.thumbnail.url
+            url_split = thumbnail_url.split('/')[-4:]
+            url_join = '/'.join(url_split)
+            print(url_join)
+
+            spot_dict = {
+                'Title':spot.username,
+                'Major_category':spot.major_category,
+                'Thumbnail':self.DEBUG_URL + url_join,
+                'spotpk':spot.owner.pk,
+                'lat':spot.latitude,
+                'lon':spot.longitude,
+            }
+            data["Search"].append(spot_dict)
+        return data
+
+
 class SpotDetailapi(View):
-    DEBUG_URL = 'http://192.168.43.36/'
-    # DEBUG_URL = 'http://10.0.2.2:80/'
+    # DEBUG_URL = 'http://192.168.43.36/'
+    DEBUG_URL = 'http://10.0.2.2:80/'
 
     def get(self, request, *args, **kwargs):
         lang = request.GET.get('gl')
@@ -175,7 +243,7 @@ class SpotDetailapi(View):
             'Category':spot.major_category,
             'Thumbnail':self.DEBUG_URL + url_join,
             'Information':spot.self_intro,
-            'Address':spot.address,
+            'Address':spot.address_prefecture + spot.address_city + spot.address_street,
             'Telephone':spot.telephone,
             'EntranceFee':spot.entrance_fee,
             'BusinessHours':spot.business_hours,
@@ -205,6 +273,7 @@ class SpotDetailapi(View):
             'Holiday':spotlang.holiday,
         }
         return data
+
 
 class PostReview(View):
 
@@ -273,8 +342,8 @@ class Reviewapi(View):
 class CameraResult(View):
 
     # TODO : デバッグ用のURL
-    DEBUG_URL = 'http://192.168.43.36/'
-    # DEBUG_URL = 'http://10.0.2.2:80/'
+    #DEBUG_URL = 'http://192.168.43.36/'
+    DEBUG_URL = 'http://10.0.2.2:80/'
 
     def get(self, request, *args, **kwargs):
         data = {}

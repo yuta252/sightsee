@@ -78,13 +78,18 @@ class UserEditForm(forms.ModelForm):
     )
     class Meta:
         model = User
-        fields = ('username', 'thumbnail', 'self_intro', 'major_category', 'address', 'telephone', 'entrance_fee', 'business_hours', 'holiday')
+        fields = ('username', 'thumbnail', 'self_intro', 'major_category', 'address_prefecture', 'address_city', 'address_street', 'latitude', 'longitude', 'telephone', 'url','entrance_fee', 'business_hours', 'holiday')
         widgets = {
             'username':forms.TextInput(attrs={'class':'form-control obj_username', 'placeholder':'名称を入力'}),
             'self_intro':forms.Textarea(attrs={'class':'form-control obj_self_intro', 'rows':'7'}),
             'major_category':forms.Select(attrs={'class':'form-control'}),
-            'address':forms.TextInput(attrs={'class':'form-control'}),
+            'address_prefecture':forms.TextInput(attrs={'class':'form-control add_pre'}),
+            'address_city':forms.TextInput(attrs={'class':'form-control add_city'}),
+            'address_street':forms.TextInput(attrs={'class':'form-control add_street'}),
+            'latitude':forms.TextInput(attrs={'id':'latitude', 'class':'form-control', 'placeholder':'緯度'}),
+            'longitude':forms.TextInput(attrs={'id':'longitude', 'class':'form-control', 'placeholder':'経度'}),
             'telephone':forms.TextInput(attrs={'class':'form-control'}),
+            'url':forms.TextInput(attrs={'class':'form-control'}),
             'entrance_fee':forms.TextInput(attrs={'class':'form-control'}),
             'business_hours':forms.TextInput(attrs={'class':'form-control'}),
             'holiday':forms.TextInput(attrs={'class':'form-control'}),
@@ -100,12 +105,14 @@ class UserLangEditForm(forms.ModelForm):
     class Meta:
         model = UserLang
         # 'major_category' fields削除
-        fields = ('language', 'username', 'self_intro', 'address', 'entrance_fee', 'business_hours', 'holiday')
+        fields = ('language', 'username', 'self_intro', 'address_prefecture', 'address_city', 'address_street', 'entrance_fee', 'business_hours', 'holiday')
         widgets = {
             'language':forms.Select(attrs={'id':'userlang_laguage'}),
             'username':forms.TextInput(attrs={'id':'userlang_username', 'placeholder':'名称を入力'}),
             'self_intro':forms.Textarea(attrs={'id':'userlang_self_intro', 'rows':'7'}),
-            'address':forms.TextInput(attrs={'id':'userlang_address'}),
+            'address_prefecture':forms.TextInput(attrs={'id':'userlang_address'}),
+            'address_city':forms.TextInput(attrs={'id':'userlang_address'}),
+            'address_street':forms.TextInput(attrs={'id':'userlang_address'}),
             'entrance_fee':forms.TextInput(attrs={'id':'userlang_entrance_fee'}),
             'business_hours':forms.TextInput(attrs={'id':'userlang_business_hours'}),
             'holiday':forms.TextInput(attrs={'id':'userlang_holiday'}),

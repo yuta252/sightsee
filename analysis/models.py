@@ -23,6 +23,7 @@ def get_photo_upload_path(self, filename):
     # TODO : 本番環境のときpath入れ替え
     # return "/postpic/" + str(self.exhibit_id.owner.id) + "/" + str(self.exhibit_id.id) + "/" + + str(self.id) + '.jpg'
 
+
 def get_thumbnail_path(self, filename):
     """
         ユーザーごとにthumbnailフォルダパスを変更
@@ -33,6 +34,7 @@ def get_thumbnail_path(self, filename):
     return user_dir_path + "/" + str(self.id) + '.jpg'
     # TODO : 本番環境のときpath入れ替え
     # return "/thumbnail/" + str(self.id) + '.jpg'
+
 
 def get_infference_model_path(self, filename):
     """
@@ -118,11 +120,18 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     self_intro = models.CharField('introduction', max_length=1000, null=True, blank=True, help_text='Please enter within 1000 characters.')
     major_category = models.CharField('major category', max_length=2, choices=MAJOR_FIELD_CHOICE, default='00')
-    address = models.CharField('address', max_length=150, null=True, blank=True, help_text='Please enter within 150 characters.')
+    address_prefecture = models.CharField('address_pre', max_length=20, null=True, blank=True, help_text='※東京都')
+    address_city = models.CharField('address_city', max_length=50, null=True, blank=True, help_text='※港区芝公園')
+    address_street = models.CharField('address_street', max_length=50, null=True, blank=True, help_text='※4-2-8')
+    latitude = models.FloatField('latitude', max_length=1, null=True, blank=True)
+    longitude = models.FloatField('logitude', max_length=1, null=True, blank=True)
     tel_number_regex = RegexValidator(regex=r'^[0-9]+$', message=('Tel number must be entered in the format: "09012345678". Up to 15 digits allowed.'))
     telephone = models.CharField('telephone number', max_length=15, validators=[tel_number_regex])
+    url = models.CharField('url', max_length=150, null=True, blank=True)
     entrance_fee = models.CharField('entrance fee', max_length=150, null=True, blank=True, help_text='Please enter within 150 characters.')
     business_hours = models.CharField('business hours', max_length=100, null=True, blank=True, help_text='Please enter within 100 characters.')
+    rating_sum = models.FloatField('rating sum', default=0)
+    rating_amount = models.IntegerField('rating amount', default=0)
     holiday = models.CharField('holiday', max_length=30, null=True, blank=True, help_text='Please enter within 30 characters.')
     knn_model = models.FileField('knn model', upload_to=get_infference_model_path, null=True, blank=True)
     exhibit_csv = models.FileField('exhibit csv list', upload_to=get_infference_model_path, null=True, blank=True)
@@ -157,7 +166,7 @@ class Exhibit(models.Model):
 
     owner = models.ForeignKey(User, on_delete=models.PROTECT, related_name='exhibit_owner')
     exhibit_name = models.TextField(max_length=30, help_text='30文字以内で入力しください')
-    exhibit_desc = models.TextField(max_length=500, help_text='500文字以内で入力してください')
+    exhibit_desc = models.TextField(max_length=1000, help_text='1000文字以内で入力してください')
     exhibit_name_en = models.TextField(max_length=30, null=True, blank=True, default='', help_text='30文字以内で入力しください')
     exhibit_desc_en = models.TextField(max_length=500, null=True, blank=True, default='', help_text='500文字以内で入力してください')
     exhibit_name_zh = models.TextField(max_length=30, null=True, blank=True, default='', help_text='30文字以内で入力しください')
@@ -166,6 +175,7 @@ class Exhibit(models.Model):
 
     def __str__(self):
         return str(self.exhibit_name) + '(' + str(self.owner) + ')'
+
 
 class ExhibitPicture(models.Model):
 
@@ -210,7 +220,9 @@ class UserLang(models.Model):
     language = models.CharField('language', max_length=5, choices=LANGUAGE_FIELD_CHOICE, default='NA')
     username = models.CharField('user name', max_length=30, null=True, blank=True, help_text='Please enter within 30 characters.')
     self_intro = models.CharField('introduction', max_length=1000, null=True, blank=True, help_text='Please enter within 1000 characters.')
-    address = models.CharField('address', max_length=150, null=True, blank=True, help_text='Please enter within 150 characters.')
+    address_prefecture = models.CharField('address_pre', max_length=20, null=True, blank=True, help_text='※東京都')
+    address_city = models.CharField('address_city', max_length=50, null=True, blank=True, help_text='※港区芝公園')
+    address_street = models.CharField('address_street', max_length=50, null=True, blank=True, help_text='※4-2-8')
     entrance_fee = models.CharField('entrance fee', max_length=150, null=True, blank=True, help_text='Please enter within 150 characters.')
     business_hours = models.CharField('business hours', max_length=100, null=True, blank=True, help_text='Please enter within 100 characters.')
     holiday = models.CharField('holiday', max_length=30, null=True, blank=True, help_text='Please enter within 30 characters.')
