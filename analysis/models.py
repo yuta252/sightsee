@@ -165,12 +165,12 @@ class Exhibit(models.Model):
         ordering = ('-upload_date',)
 
     owner = models.ForeignKey(User, on_delete=models.PROTECT, related_name='exhibit_owner')
-    exhibit_name = models.TextField(max_length=30, help_text='30文字以内で入力しください')
+    exhibit_name = models.TextField(max_length=50, help_text='30文字以内で入力しください')
     exhibit_desc = models.TextField(max_length=1000, help_text='1000文字以内で入力してください')
-    exhibit_name_en = models.TextField(max_length=30, null=True, blank=True, default='', help_text='30文字以内で入力しください')
-    exhibit_desc_en = models.TextField(max_length=500, null=True, blank=True, default='', help_text='500文字以内で入力してください')
-    exhibit_name_zh = models.TextField(max_length=30, null=True, blank=True, default='', help_text='30文字以内で入力しください')
-    exhibit_desc_zh = models.TextField(max_length=500, null=True, blank=True, default='', help_text='500文字以内で入力してください')
+    exhibit_name_en = models.TextField(max_length=100, null=True, blank=True, default='', help_text='30文字以内で入力しください')
+    exhibit_desc_en = models.TextField(max_length=2000, null=True, blank=True, default='', help_text='500文字以内で入力してください')
+    exhibit_name_zh = models.TextField(max_length=100, null=True, blank=True, default='', help_text='30文字以内で入力しください')
+    exhibit_desc_zh = models.TextField(max_length=2000, null=True, blank=True, default='', help_text='500文字以内で入力してください')
     upload_date = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
@@ -205,16 +205,6 @@ class UserLang(models.Model):
         ('ko', 'Korea')
     ]
 
-    # MAJOR_FIELD_CHOICE = [
-    #     ('NA', ''),
-    #     ('MU', 'Museum'),
-    #     ('AM', 'Art museum'),
-    #     ('SH', 'Shrine'),
-    #     ('TR', 'temple'),
-    #     ('BU', 'Building'),
-    #     ('AN', 'Animal and Aquarium')
-    # ]
-
     """User English model"""
     owner = models.ForeignKey(User, on_delete=models.PROTECT)
     language = models.CharField('language', max_length=5, choices=LANGUAGE_FIELD_CHOICE, default='NA')
@@ -227,8 +217,6 @@ class UserLang(models.Model):
     business_hours = models.CharField('business hours', max_length=100, null=True, blank=True, help_text='Please enter within 100 characters.')
     holiday = models.CharField('holiday', max_length=30, null=True, blank=True, help_text='Please enter within 30 characters.')
     upload_date = models.DateTimeField(default=timezone.now)
-
-    # major_category = models.CharField('major category', max_length=2, choices=MAJOR_FIELD_CHOICE, default='NA')
 
     def __str__(self):
         return str(self.owner) + '(' + str(self.language) + ')'

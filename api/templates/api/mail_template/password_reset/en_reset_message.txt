@@ -1,0 +1,19 @@
+Authentication code：{{ auth_code }}
+※Expiration date：It's valid for 30 minutes after issuing the code.
+
+You need to verify that {{ email }} is your email address.
+Enter the code above and then complete sign-in.
+
+
+【Notice】
+◆The code is valid for 30 minutes after issuing the code due to security.
+◆If the expiration date has passed, please register from the beginning.
+
+【Contact】
+This address is for sending only.
+Note that you cannot reply directly to this address.
+You can make sure from this URL below if you don't know how to use this app.
+
+------------------------
+StartLens
+------------------------
