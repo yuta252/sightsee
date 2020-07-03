@@ -447,7 +447,7 @@ class HomeView(View):
             }
             data["result"].append(spot_dict)
 
-        data["info"]["num"] = spot_list.count()
+        data["info"]["num"] = len(data["result"])
         data["error"]["message"] = ""
         return data
 
@@ -510,7 +510,7 @@ class HomeView(View):
                 'like': is_like,
             }
             data["result"].append(spot_dict)
-        data["info"]["num"] = spot_list.count()
+        data["info"]["num"] = len(data["result"])
         data["error"]["message"] = ""
         return data
 
@@ -588,7 +588,7 @@ class SearchView(View):
             }
             data["result"].append(spot_dict)
 
-        data["info"]["num"] = spot_list.count()
+        data["info"]["num"] = len(data["result"])
         data["error"]["message"] = ""
         return data
 
@@ -618,7 +618,7 @@ class SearchView(View):
                 # カテゴリーで検索
                 spot_list = spot_list.filter(owner__major_category__in=self.category_mapping[category]).order_by('upload_date').reverse()
             else:
-                spot_list = spot_list.order_by('date_joined').reverse()
+                spot_list = spot_list.order_by('upload_date').reverse()
         else:
             # 優先言語がない場合にデフォルトで英語を表示する
             if (city != 'all' and category != 'all'):
@@ -665,7 +665,7 @@ class SearchView(View):
                 'like': is_like,
             }
             data["result"].append(spot_dict)
-        data["info"]["num"] = spot_list.count()
+        data["info"]["num"] = len(data["result"])
         data["error"]["message"] = ""
         return data
 
@@ -757,7 +757,7 @@ class FavoriteView(View):
             }
             data["result"].append(spot_dict)
 
-        data["info"]["num"] = like_list.count()
+        data["info"]["num"] = len(data["result"])
         data["error"]["message"] = ""
         return data
 
@@ -883,7 +883,6 @@ class SpotDetailView(View):
         # reviewを取得
         review_list = Review.objects.filter(spot=spot)
         review_num = min(review_list.count(), 2)
-        data["info"]["reviewNum"] = review_num
 
         for review in review_list[:review_num]:
             review_dict = {
@@ -894,24 +893,28 @@ class SpotDetailView(View):
             }
             data["result"]["review"].append(review_dict)
 
+        data["info"]["reviewNum"] = len(data["result"]["review"])
         # recommendを取得
         recommend_list = Exhibit.objects.filter(owner=spot)
         recommend_num = min(recommend_list.count(), 4)
-        data["info"]["recommendNum"] = recommend_num
 
         for recommend in recommend_list[:recommend_num]:
-            recommend_picture = ExhibitPicture.objects.filter(exhibit_id=recommend)[0]
-            picture_url = recommend_picture.post_pic.url
-            picture_url_split = picture_url.split('/')[-5:]
-            picture_url_join = '/'.join(picture_url_split)
+            try:
+                recommend_picture = ExhibitPicture.objects.filter(exhibit_id=recommend)[0]
+                picture_url = recommend_picture.post_pic.url
+                picture_url_split = picture_url.split('/')[-5:]
+                picture_url_join = '/'.join(picture_url_split)
 
-            recommend_dict = {
-                "exhibitId": recommend.id,
-                "exhibitName": recommend.exhibit_name,
-                "exhibitUrl": self.DEBUG_URL + picture_url_join,
-            }
-            data["result"]["recommend"].append(recommend_dict)
-
+                recommend_dict = {
+                    "exhibitId": recommend.id,
+                    "exhibitName": recommend.exhibit_name,
+                    "exhibitUrl": self.DEBUG_URL + picture_url_join,
+                }
+                data["result"]["recommend"].append(recommend_dict)
+            except IndexError as e:
+                print("Exhibit: {},写真が取得できませんでした。\n error: {}".format(recommend, e))
+                logger.info("Exhibit: %s,写真が取得できませんでした。\n error: %s", recommend, e)
+        data["info"]["recommendNum"] = len(data["result"]["recommend"])
         data["error"]["message"] = ""
         return data
 
@@ -961,7 +964,6 @@ class SpotDetailView(View):
             fee = lang_obj[0].entrance_fee
             business_hours = lang_obj[0].business_hours
             holiday = lang_obj[0].holiday
-
         except IndexError as e:
             logger.info("%s: ベースの英語での登録がありません。 \nerror: %s", spot.username, e)
 
@@ -1004,30 +1006,34 @@ class SpotDetailView(View):
 
         recommend_list = Exhibit.objects.filter(owner=spot)
         recommend_num = min(recommend_list.count(), 4)
-        data["info"]["recommendNum"] = recommend_num
 
         for recommend in recommend_list[:recommend_num]:
-            recommend_picture = ExhibitPicture.objects.filter(exhibit_id=recommend)[0]
-            picture_url = recommend_picture.post_pic.url
-            picture_url_split = picture_url.split('/')[-5:]
-            picture_url_join = '/'.join(picture_url_split)
-            """
-            言語ごとに処理を分ける。言語の説明文がない場合は英語をデフォルトで表示する
-            TODO: データベースの構造を修正が必要(WebViewも要修正)
-            """
-            if language == 'zh':
-                exhibit_name = recommend.exhibit_name_zh
-                if len(exhibit_name) == 0:
+            try:
+                recommend_picture = ExhibitPicture.objects.filter(exhibit_id=recommend)[0]
+                picture_url = recommend_picture.post_pic.url
+                picture_url_split = picture_url.split('/')[-5:]
+                picture_url_join = '/'.join(picture_url_split)
+                """
+                言語ごとに処理を分ける。言語の説明文がない場合は英語をデフォルトで表示する
+                TODO: データベースの構造を修正が必要(WebViewも要修正)
+                """
+                if language == 'zh':
+                    exhibit_name = recommend.exhibit_name_zh
+                    if len(exhibit_name) == 0:
+                        exhibit_name = recommend.exhibit_name_en
+                else:
                     exhibit_name = recommend.exhibit_name_en
-            else:
-                exhibit_name = recommend.exhibit_name_en
 
-            recommend_dict = {
-                "exhibitId": recommend.id,
-                "exhibitName": exhibit_name,
-                "exhibitUrl": self.DEBUG_URL + picture_url_join,
-            }
-            data["result"]["recommend"].append(recommend_dict)
+                recommend_dict = {
+                    "exhibitId": recommend.id,
+                    "exhibitName": exhibit_name,
+                    "exhibitUrl": self.DEBUG_URL + picture_url_join,
+                }
+                data["result"]["recommend"].append(recommend_dict)
+            except IndexError as e:
+                print("Exhibit: {},写真が取得できませんでした。\n error: {}".format(recommend, e))
+                logger.info("Exhibit: %s,写真が取得できませんでした。\n error: %s", recommend, e)
+        data["info"]["recommendNum"] = len(data["result"]["recommend"])
         data["error"]["message"] = ""
         return data
 
@@ -1127,7 +1133,6 @@ class ReviewListView(View):
 
         review_list = Review.objects.filter(spot=spot, lang='ja')
         review_num = min(review_list.count(), 100)
-        data["info"]["reviewNum"] = review_list.count()
 
         for review in review_list[:review_num]:
             review_dict = {
@@ -1137,9 +1142,8 @@ class ReviewListView(View):
                 "posteddate": review.date_posted.date().strftime('%Y年%m月%d日'),
             }
             data["result"]["review"].append(review_dict)
-
+        data["info"]["reviewNum"] = len(data["result"]["review"])
         data["error"]["message"] = ""
-
         return data
 
     def get_json_other(self, spot_pk, language):
@@ -1165,7 +1169,6 @@ class ReviewListView(View):
             review_list = Review.objects.filter(Q(lang=language) | Q(lang='en'), spot=spot)
 
         review_num = min(review_list.count(), 100)
-        data["info"]["reviewNum"] = review_list.count()
 
         for review in review_list[:review_num]:
             review_dict = {
@@ -1175,6 +1178,7 @@ class ReviewListView(View):
                 "posteddate": review.date_posted.date().strftime('%m/%d/%Y'),
             }
             data["result"]["review"].append(review_dict)
+        data["info"]["reviewNum"] = len(data["result"]["review"])
         data["error"]["message"] = ""
         return data
 
@@ -1232,21 +1236,25 @@ class ExhibitListView(View):
 
         recommend_list = Exhibit.objects.filter(owner=spot)
         recommend_num = min(recommend_list.count(), 100)
-        data["info"]["exhibitNum"] = recommend_num
 
         for recommend in recommend_list[:recommend_num]:
-            recommend_picture = ExhibitPicture.objects.filter(exhibit_id=recommend)[0]
-            picture_url = recommend_picture.post_pic.url
-            picture_url_split = picture_url.split('/')[-5:]
-            picture_url_join = '/'.join(picture_url_split)
+            try:
+                recommend_picture = ExhibitPicture.objects.filter(exhibit_id=recommend)[0]
+                picture_url = recommend_picture.post_pic.url
+                picture_url_split = picture_url.split('/')[-5:]
+                picture_url_join = '/'.join(picture_url_split)
 
-            recommend_dict = {
-                "exhibitId": recommend.id,
-                "exhibitName": recommend.exhibit_name,
-                "exhibitUrl": self.DEBUG_URL + picture_url_join,
-            }
-            data["result"]["recommend"].append(recommend_dict)
+                recommend_dict = {
+                    "exhibitId": recommend.id,
+                    "exhibitName": recommend.exhibit_name,
+                    "exhibitUrl": self.DEBUG_URL + picture_url_join,
+                }
+                data["result"]["recommend"].append(recommend_dict)
+            except IndexError as e:
+                print("Exhibit: {},写真が取得できませんでした。\n error: {}".format(recommend, e))
+                logger.info("Exhibit: %s,写真が取得できませんでした。\n error: %s", recommend, e)
         data["error"]["message"] = ""
+        data["info"]["exhibitNum"] = len(data["result"]["recommend"])
         return data
 
     def get_json_other(self, spot_pk, language):
@@ -1266,31 +1274,35 @@ class ExhibitListView(View):
 
         recommend_list = Exhibit.objects.filter(owner=spot)
         recommend_num = min(recommend_list.count(), 100)
-        data["info"]["recommendNum"] = recommend_num
 
         for recommend in recommend_list[:recommend_num]:
-            recommend_picture = ExhibitPicture.objects.filter(exhibit_id=recommend)[0]
-            picture_url = recommend_picture.post_pic.url
-            picture_url_split = picture_url.split('/')[-5:]
-            picture_url_join = '/'.join(picture_url_split)
-            """
-            言語ごとに処理を分ける。言語の説明文がない場合は英語をデフォルトで表示する
-            TODO: データベースの構造を修正が必要(WebViewも要修正)
-            """
-            if language == 'zh':
-                exhibit_name = recommend.exhibit_name_zh
-                if len(exhibit_name) == 0:
+            try:
+                recommend_picture = ExhibitPicture.objects.filter(exhibit_id=recommend)[0]
+                picture_url = recommend_picture.post_pic.url
+                picture_url_split = picture_url.split('/')[-5:]
+                picture_url_join = '/'.join(picture_url_split)
+                """
+                言語ごとに処理を分ける。言語の説明文がない場合は英語をデフォルトで表示する
+                TODO: データベースの構造を修正が必要(WebViewも要修正)
+                """
+                if language == 'zh':
+                    exhibit_name = recommend.exhibit_name_zh
+                    if len(exhibit_name) == 0:
+                        exhibit_name = recommend.exhibit_name_en
+                else:
                     exhibit_name = recommend.exhibit_name_en
-            else:
-                exhibit_name = recommend.exhibit_name_en
 
-            recommend_dict = {
-                "exhibitId": recommend.id,
-                "exhibitName": exhibit_name,
-                "exhibitUrl": self.DEBUG_URL + picture_url_join,
-            }
-            data["result"]["recommend"].append(recommend_dict)
+                recommend_dict = {
+                    "exhibitId": recommend.id,
+                    "exhibitName": exhibit_name,
+                    "exhibitUrl": self.DEBUG_URL + picture_url_join,
+                }
+                data["result"]["recommend"].append(recommend_dict)
+            except IndexError as e:
+                print("Exhibit: {},写真が取得できませんでした。\n error: {}".format(recommend, e))
+                logger.info("Exhibit: %s,写真が取得できませんでした。\n error: %s", recommend, e)
         data["error"]["message"] = ""
+        data["info"]["exhibitNum"] = len(data["result"]["recommend"])
         return data
 
 
@@ -1356,6 +1368,7 @@ class ExhibitDetailView(View):
 
     def get(self, request, *args, **kwargs):
         exhibit_pk = request.GET.get('exhibitId')
+        spot_pk = request.GET.get('spot')
         language = request.GET.get('lang')
         apikey = request.GET.get('key')
 
@@ -1364,14 +1377,15 @@ class ExhibitDetailView(View):
         else:
             data = self.get_json_other(exhibit_pk, language)
 
+        spot = User.objects.get(id=spot_pk)
         appuser = AppUser.objects.get(apikey=apikey)
         try:
             # TODO:閲覧履歴のデータベース保存
-            print("保存しました")
+            print("spot:{} \n appuser:{} \n保存しました".format(spot, appuser))
         except IntegrityError as e:
-            logger.info("Appuser: %s, Spot %s, データベースに登録できませんでした\nerror:%s", user, spot, e)
+            logger.info("Appuser: %s, Spot %s, データベースに登録できませんでした\nerror:%s", appuser, spot, e)
         except Exception as e:
-            logger.info("Appuser: %s, Spot %s, データベースに登録できませんでした\nerror:%s", user, spot, e)
+            logger.info("Appuser: %s, Spot %s, データベースに登録できませんでした\nerror:%s", appuser, spot, e)
         data = json.dumps(data, indent=5, ensure_ascii=False)
         return HttpResponse(data, content_type='application/json')
 
